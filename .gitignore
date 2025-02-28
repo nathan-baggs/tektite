@@ -13,7 +13,6 @@ obj/
 *.data
 tags
 tmp/
-Makefile
 .clangd/
 compile_commands.json
 .vscode/
