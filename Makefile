@@ -4,7 +4,7 @@ CXXFLAGS = /nologo /std:c++latest /GS- /Qspectre- /D_CRT_SECURE_NO_WARNINGS /D_S
 LDFLAGS = /nologo /ENTRY:main /SUBSYSTEM:CONSOLE /NODEFAULTLIB
 
 SOURCES = main.cpp window.cpp
-INC_LIBS = kernel32.lib user32.lib
+INC_LIBS = kernel32.lib user32.lib gdi32.lib opengl32.lib
 OBJECTS = $(SOURCES:.cpp=.obj)
 TARGET = game.exe
 IMAGE = game.png

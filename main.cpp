@@ -1,39 +1,34 @@
 #include <Windows.h>
 
-#include "clib.h"
-#include "error.h"
 #include "window.h"
 
-auto log(const char *msg) -> void
-{
-    const auto console = ::GetStdHandle(STD_OUTPUT_HANDLE);
-    ensure(console != INVALID_HANDLE_VALUE, ErrorCode::INVALID_STD_VALUE);
+#include "log.h"
+#include "opengl.h"
 
-    ::DWORD written{};
-    auto write_res = ::WriteConsoleA(console, msg, strlen(msg), &written, nullptr);
-    ensure(write_res, ErrorCode::WRITE_CONSOLE);
-
-    written = {};
-    const auto newline = "\n";
-    write_res = ::WriteConsoleA(console, newline, 1, &written, nullptr);
-    ensure(write_res, ErrorCode::WRITE_CONSOLE);
-}
+// https://stackoverflow.com/a/1583220
+EXTERN_C int _fltused = 0;
 
 auto main() -> int
 {
     static const auto width = 1920u;
     static const auto height = 1080u;
 
-    auto window = Window{width, height};
-
     log("starting");
+
+    auto window = Window{width, height};
 
     while (window.running())
     {
         window.pump_message();
+
+        ::glClearColor(0.0f, 0.5f, 1.0f, 1.0f);
+        ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        window.swap();
     }
 
-    log("stopping\n");
+    log("stopping");
 
-    return 0;
+    // avoid cleanup, just die
+    ::ExitProcess(0);
 }

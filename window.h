@@ -9,6 +9,7 @@ class Window
 
     auto running() const -> bool;
     auto pump_message() -> void;
+    auto swap() const -> void;
 
   private:
     bool running_;

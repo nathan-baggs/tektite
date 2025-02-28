@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Windows.h>
 
 enum class ErrorCode
@@ -9,7 +11,9 @@ enum class ErrorCode
     GET_DC = 5,
     SHOW_WINDOW = 6,
     UPDATE_WINDOW = 7,
-    REGISTER_RAW_INPUT_DEVICES = 8
+    REGISTER_RAW_INPUT_DEVICES = 8,
+    RESOLVE_GL_FUNCTION = 9,
+    WGL_MAKE_CURRENT = 10,
 };
 
 inline auto ensure(bool condition, ErrorCode ec) -> void
