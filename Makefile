@@ -1,10 +1,10 @@
 CXX = cl.exe
 LD = link.exe
-CXXFLAGS = /nologo /std:c++latest
+CXXFLAGS = /nologo /std:c++latest /GS- /Qspectre- /D_CRT_SECURE_NO_WARNINGS /D_SCL_SECURE_NO_WARNINGS
 LDFLAGS = /nologo /ENTRY:main /SUBSYSTEM:CONSOLE /NODEFAULTLIB
 
 SOURCES = main.cpp
-INC_LIBS = kernel32.lib
+INC_LIBS = kernel32.lib user32.lib
 OBJECTS = $(SOURCES:.cpp=.obj)
 TARGET = game.exe
 IMAGE = game.png
