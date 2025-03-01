@@ -17,3 +17,7 @@ tmp/
 compile_commands.json
 .vscode/
 .cache/
+*.png
+*.obj
+*.exe
+dump/
