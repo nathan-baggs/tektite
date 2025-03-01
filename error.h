@@ -14,12 +14,22 @@ enum class ErrorCode
     REGISTER_RAW_INPUT_DEVICES = 8,
     RESOLVE_GL_FUNCTION = 9,
     WGL_MAKE_CURRENT = 10,
+    BUFFER_TOO_SMALL = 11,
+    UNKNOWN_SHADER_TYPE = 12,
+    FAILED_TO_COMPILE_SHADER = 13,
+    FAILED_TO_CREATE_PROGRAM = 14,
+    FAILED_TO_LINK_PROGRAM = 15,
 };
+
+inline auto die(ErrorCode ec) -> void
+{
+    ::ExitProcess(static_cast<::UINT>(ec));
+}
 
 inline auto ensure(bool condition, ErrorCode ec) -> void
 {
     if (!condition)
     {
-        ::ExitProcess(static_cast<::UINT>(ec));
+        die(ec);
     }
 }

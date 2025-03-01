@@ -1,8 +1,8 @@
 #pragma once
 
 #include <array>
-#include <span>
 
+#include "clib.h"
 #include "quaternion.h"
 #include "vector3.h"
 
@@ -124,9 +124,9 @@ class Matrix4
     static auto look_at(const Vector3 &eye, const Vector3 &look_at, const Vector3 &up) -> Matrix4;
     static auto perspective(float fov, float width, float height, float near_plane, float far_plane) -> Matrix4;
 
-    constexpr auto data() const -> std::span<const float>
+    constexpr auto data() const -> const float *
     {
-        return elements_;
+        return elements_.data();
     }
 
     constexpr auto operator[](this auto &&self, std::size_t index) -> float &
@@ -186,7 +186,7 @@ inline auto Matrix4::perspective(float fov, float width, float height, float nea
     Matrix4 m;
 
     const auto aspect_ratio = width / height;
-    const auto tmp = std::tan(fov / 2.0f);
+    const auto tmp = tan(fov / 2.0f);
     const auto t = tmp * near_plane;
     const auto b = -t;
     const auto r = t * aspect_ratio;

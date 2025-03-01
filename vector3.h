@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cmath>
+#include "clib.h"
 
 struct Vector3
 {
@@ -21,9 +21,9 @@ struct Vector3
     {
     }
 
-    static auto normalise(const Vector3 &v) -> Vector3
+    static constexpr auto normalise(const Vector3 &v) -> Vector3
     {
-        const auto length = std::hypot(v.x, v.y, v.z);
+        const auto length = hypot(v.x, v.y, v.z);
         if (length == 0.0f)
         {
             return {};

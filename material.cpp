@@ -36,7 +36,7 @@ auto Material::set_uniform(const char *name, const Matrix4 &obj) const -> void
 {
     if (const auto location = ::glGetUniformLocation(handle_, name); location != -1)
     {
-        ::glUniformMatrix4fv(location, 1, GL_FALSE, obj.data().data());
+        ::glUniformMatrix4fv(location, 1, GL_FALSE, obj.data());
     }
 }
 
