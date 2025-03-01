@@ -3,7 +3,7 @@ LD = link.exe
 CXXFLAGS = /nologo /std:c++latest /GS- /Qspectre- /D_CRT_SECURE_NO_WARNINGS /D_SCL_SECURE_NO_WARNINGS /DWIN32_LEAN_AND_MEAN /DNOMINMAX
 LDFLAGS = /nologo /ENTRY:main /SUBSYSTEM:CONSOLE /NODEFAULTLIB
 
-SOURCES = main.cpp window.cpp
+SOURCES = main.cpp window.cpp buffer.cpp shader.cpp material.cpp mesh.cpp
 INC_LIBS = kernel32.lib user32.lib gdi32.lib opengl32.lib
 OBJECTS = $(SOURCES:.cpp=.obj)
 TARGET = game.exe
