@@ -120,7 +120,8 @@ auto main() -> int
     while (window.running())
     {
         Event evt{};
-        if (window.pump_message(&evt))
+        auto has_event = window.pump_message(&evt);
+        while (has_event)
         {
             switch (evt.type)
             {
@@ -157,6 +158,8 @@ auto main() -> int
                     break;
                 }
             }
+
+            has_event = window.pump_message(&evt);
         }
 
         auto walk_direction = Vector3{};
