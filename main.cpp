@@ -14,6 +14,7 @@
 #include "opengl.h"
 #include "quaternion.h"
 #include "shader.h"
+#include "shapes.h"
 #include "vector3.h"
 #include "vertex_data.h"
 
@@ -66,51 +67,36 @@ auto main() -> int
 
     auto window = Window{width, height};
 
-    const VertexData vertices[] = {
-        {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-        {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-        {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}},
-        {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 0.0f}},
-
-        {{-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 1.0f}},
-        {{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 1.0f}},
-        {{0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}},
-        {{-0.5f, 0.5f, 0.5f}, {0.5f, 0.5f, 0.5f}}};
-
-    const std::uint32_t indices[] = {0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4, 0, 3, 7, 7, 4, 0,
-                                     1, 5, 6, 6, 2, 1, 0, 1, 5, 5, 4, 0, 3, 2, 6, 6, 7, 3};
-
     auto vertex_shader = Shader{vertex_shader_src, ShaderType::VERTEX};
     auto fragment_shader = Shader{fragment_shader_src, ShaderType::FRAGMENT};
 
     auto material = Material{vertex_shader, fragment_shader};
 
-    const auto mesh =
-        Mesh{vertices, sizeof(vertices) / sizeof(vertices[0]), indices, sizeof(indices) / sizeof(indices[0])};
+    const auto cube_mesh = Mesh{
+        g_cube_vertices,
+        sizeof(g_cube_vertices) / sizeof(VertexData),
+        g_cube_indices,
+        sizeof(g_cube_indices) / sizeof(std::uint32_t)};
+
+    const auto sphere_mesh = Mesh{
+        g_sphere_vertices,
+        sizeof(g_sphere_vertices) / sizeof(VertexData),
+        g_sphere_indices,
+        sizeof(g_sphere_indices) / sizeof(std::uint32_t)};
+
+    const auto cylinder_mesh = Mesh{
+        g_cylinder_vertices,
+        sizeof(g_cylinder_vertices) / sizeof(VertexData),
+        g_cylinder_indices,
+        sizeof(g_cylinder_indices) / sizeof(std::uint32_t)};
 
     auto camera =
         Camera{{0.0f, 0.0f, 15.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, M_PI / 4.0f, width, height, 0.1f, 100.0f};
     const auto camera_buffer = Buffer{sizeof(Matrix4) * 2 + sizeof(Vector3)};
 
-    auto view = Matrix4{
-        {1.00,
-         0.00,
-         -4.37114E-08,
-         2.18557E-06,
-         0.00,
-         1.00,
-         0.00,
-         0.00,
-         4.37114E-08,
-         0.00,
-         1.00,
-         0.00,
-         0.00,
-         0.00,
-         -5.00,
-         1.00}};
-
     auto cube_model = Matrix4{{5.0f, 5.0f, 5.0f}, Matrix4::Scale{}};
+    auto sphere_model = Matrix4{{6.0f, 0.0f, 0.0f}, {3.0f, 3.0f, 3.0f}};
+    auto cylinder_model = Matrix4{{-6.0f, 0.0f, 0.0f}, {3.0f, 3.0f, 3.0f}};
 
     auto move_forward = false;
     auto move_backward = false;
@@ -201,10 +187,30 @@ auto main() -> int
 
         material.set_uniform("model", cube_model);
 
-        mesh.bind();
+        cube_mesh.bind();
         ::glDrawElements(
-            GL_TRIANGLES, mesh.index_count(), GL_UNSIGNED_INT, reinterpret_cast<void *>(mesh.index_offset()));
-        mesh.unbind();
+            GL_TRIANGLES, cube_mesh.index_count(), GL_UNSIGNED_INT, reinterpret_cast<void *>(cube_mesh.index_offset()));
+        cube_mesh.unbind();
+
+        material.set_uniform("model", sphere_model);
+
+        sphere_mesh.bind();
+        ::glDrawElements(
+            GL_TRIANGLES,
+            sphere_mesh.index_count(),
+            GL_UNSIGNED_INT,
+            reinterpret_cast<void *>(sphere_mesh.index_offset()));
+        sphere_mesh.unbind();
+
+        material.set_uniform("model", cylinder_model);
+
+        cylinder_mesh.bind();
+        ::glDrawElements(
+            GL_TRIANGLES,
+            cylinder_mesh.index_count(),
+            GL_UNSIGNED_INT,
+            reinterpret_cast<void *>(cylinder_mesh.index_offset()));
+        cylinder_mesh.unbind();
 
         window.swap();
     }
