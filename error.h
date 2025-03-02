@@ -19,6 +19,7 @@ enum class ErrorCode
     FAILED_TO_COMPILE_SHADER = 13,
     FAILED_TO_CREATE_PROGRAM = 14,
     FAILED_TO_LINK_PROGRAM = 15,
+    HEAP_ALLOC_FAILED = 16,
 };
 
 inline auto die(ErrorCode ec) -> void

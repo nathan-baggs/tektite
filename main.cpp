@@ -78,17 +78,21 @@ auto main() -> int
         g_cube_indices,
         sizeof(g_cube_indices) / sizeof(std::uint32_t)};
 
-    const auto sphere_mesh = Mesh{
-        g_sphere_vertices,
-        sizeof(g_sphere_vertices) / sizeof(VertexData),
-        g_sphere_indices,
-        sizeof(g_sphere_indices) / sizeof(std::uint32_t)};
+    VertexData *sphere_vertices{};
+    auto sphere_vertex_count = std::uint32_t{};
+    std::uint32_t *sphere_indices{};
+    auto sphere_index_count = std::uint32_t{};
+    generate_sphere(10, 10, &sphere_vertices, &sphere_vertex_count, &sphere_indices, &sphere_index_count);
 
-    const auto cylinder_mesh = Mesh{
-        g_cylinder_vertices,
-        sizeof(g_cylinder_vertices) / sizeof(VertexData),
-        g_cylinder_indices,
-        sizeof(g_cylinder_indices) / sizeof(std::uint32_t)};
+    const auto sphere_mesh = Mesh{sphere_vertices, sphere_vertex_count, sphere_indices, sphere_index_count};
+
+    VertexData *cylinder_vertices{};
+    auto cylinder_vertex_count = std::uint32_t{};
+    std::uint32_t *cylinder_indices{};
+    auto cylinder_index_count = std::uint32_t{};
+    generate_cylinder(10, &cylinder_vertices, &cylinder_vertex_count, &cylinder_indices, &cylinder_index_count);
+
+    auto cylinder_mesh = Mesh{cylinder_vertices, cylinder_vertex_count, cylinder_indices, cylinder_index_count};
 
     auto camera =
         Camera{{0.0f, 0.0f, 15.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, M_PI / 4.0f, width, height, 0.1f, 100.0f};
