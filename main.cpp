@@ -6,6 +6,7 @@
 
 #include "buffer.h"
 #include "camera.h"
+#include "event.h"
 #include "log.h"
 #include "material.h"
 #include "matrix4.h"
@@ -111,9 +112,76 @@ auto main() -> int
 
     auto cube_model = Matrix4{{5.0f, 5.0f, 5.0f}, Matrix4::Scale{}};
 
+    auto move_forward = false;
+    auto move_backward = false;
+    auto move_left = false;
+    auto move_right = false;
+
     while (window.running())
     {
-        window.pump_message();
+        Event evt{};
+        if (window.pump_message(&evt))
+        {
+            switch (evt.type)
+            {
+                using enum EventType;
+                case KEY_DOWN:
+                {
+                    switch (evt.data.key)
+                    {
+                        case 'W': move_forward = true; break;
+                        case 'S': move_backward = true; break;
+                        case 'A': move_left = true; break;
+                        case 'D': move_right = true; break;
+                    }
+                    break;
+                }
+                case KEY_UP:
+                {
+                    switch (evt.data.key)
+                    {
+                        case 'W': move_forward = false; break;
+                        case 'S': move_backward = false; break;
+                        case 'A': move_left = false; break;
+                        case 'D': move_right = false; break;
+                    }
+                    break;
+                }
+                case MOUSE_MOVE:
+                {
+                    static constexpr auto sensitivity = float{0.002f};
+                    const auto delta_x = evt.data.mouse_move.delta_x * sensitivity;
+                    const auto delta_y = evt.data.mouse_move.delta_y * sensitivity;
+                    camera.adjust_yaw(delta_x);
+                    camera.adjust_pitch(-delta_y);
+                    break;
+                }
+            }
+        }
+
+        auto walk_direction = Vector3{};
+        if (move_forward)
+        {
+            walk_direction += camera.direction();
+        }
+        if (move_backward)
+        {
+            walk_direction -= camera.direction();
+        }
+        if (move_left)
+        {
+            walk_direction -= camera.right();
+        }
+        if (move_right)
+        {
+            walk_direction += camera.right();
+        }
+
+        const auto speed = 0.4f;
+        if (walk_direction != Vector3{})
+        {
+            camera.translate(Vector3::normalise(walk_direction) * speed);
+        }
 
         ::glClearColor(0.0f, 0.5f, 1.0f, 1.0f);
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

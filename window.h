@@ -2,13 +2,15 @@
 
 #include <Windows.h>
 
+#include "event.h"
+
 class Window
 {
   public:
     Window(int width, int height);
 
     auto running() const -> bool;
-    auto pump_message() -> void;
+    auto pump_message(Event *evt) -> bool;
     auto swap() const -> void;
 
   private:

@@ -7,11 +7,15 @@
 #include "third_party/opengl/wglext.h"
 
 #include "error.h"
+#include "event.h"
 #include "log.h"
 #include "opengl.h"
 
 PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB{};
 PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB{};
+
+Event g_event;
+bool g_has_event = false;
 
 auto APIENTRY opengl_debug_callback(
     ::GLenum source,
@@ -33,6 +37,38 @@ auto CALLBACK window_proc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) -> 
     switch (Msg)
     {
         case WM_CLOSE: ::PostQuitMessage(0); break;
+        case WM_KEYUP:
+        {
+            g_event = {.type = EventType::KEY_UP, .data = static_cast<std::uint8_t>(wParam)};
+            g_has_event = true;
+            break;
+        }
+        case WM_KEYDOWN:
+        {
+            g_event = {.type = EventType::KEY_DOWN, .data = static_cast<std::uint8_t>(wParam)};
+            g_has_event = true;
+            break;
+        }
+        case WM_INPUT:
+        {
+            auto raw = ::RAWINPUT{};
+            auto dwSize = ::UINT{sizeof(::RAWINPUT)};
+            ::GetRawInputData(
+                reinterpret_cast<::HRAWINPUT>(lParam), RID_INPUT, &raw, &dwSize, sizeof(::RAWINPUTHEADER));
+
+            if (raw.header.dwType == RIM_TYPEMOUSE)
+            {
+                const auto x = raw.data.mouse.lLastX;
+                const auto y = raw.data.mouse.lLastY;
+
+                g_event = {
+                    .type = EventType::MOUSE_MOVE,
+                    .data = {.mouse_move = {static_cast<float>(x), static_cast<float>(y)}}};
+                g_has_event = true;
+            }
+
+            break;
+        }
     }
 
     return ::DefWindowProc(hWnd, Msg, wParam, lParam);
@@ -216,6 +252,8 @@ Window::Window(int width, int height)
     setup_debug();
 
     ::glEnable(GL_DEPTH_TEST);
+
+    g_has_event = false;
 }
 
 auto Window::running() const -> bool
@@ -223,7 +261,7 @@ auto Window::running() const -> bool
     return running_;
 }
 
-auto Window::pump_message() -> void
+auto Window::pump_message(Event *evt) -> bool
 {
     auto msg = MSG{};
     while (::PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE))
@@ -235,7 +273,16 @@ auto Window::pump_message() -> void
 
         ::TranslateMessage(&msg);
         ::DispatchMessageA(&msg);
+
+        if (g_has_event)
+        {
+            *evt = g_event;
+            g_has_event = false;
+            return true;
+        }
     }
+
+    return false;
 }
 
 auto Window::swap() const -> void

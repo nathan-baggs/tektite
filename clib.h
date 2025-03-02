@@ -36,7 +36,7 @@ inline constexpr auto sqrt(float x) -> float
 {
     auto xn = x;
 
-    for (auto i = 0u; i < 50u; ++i)
+    for (auto i = 0u; i < 10u; ++i)
     {
         xn = 0.5f * (xn + (x / xn));
     }
