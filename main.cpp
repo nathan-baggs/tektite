@@ -21,6 +21,16 @@
 // https://stackoverflow.com/a/1583220
 EXTERN_C int _fltused = 0;
 
+#pragma warning(push)
+#pragma warning(disable : 4324)
+struct PointLightBuffer
+{
+    alignas(16) Vector3 position;
+    alignas(16) Vector3 colour;
+    alignas(16) Vector3 attenuation;
+};
+#pragma warning(pop)
+
 const auto *vertex_shader_src = R"(
     #version 460 core
 
@@ -32,29 +42,95 @@ const auto *vertex_shader_src = R"(
     };
 
     layout (location = 0) in vec3 aPos;
-    layout (location = 1) in vec3 aCol;
+    layout (location = 1) in vec3 aNormal;
+    layout (location = 2) in vec3 aTangent;
+    layout (location = 3) in vec3 aUv;
 
-    out vec3 vCol;
+    out vec3 vNormal;
+    out vec3 vUv;
+    out vec4 vPos;
+    out mat3 tbn;
 
     uniform mat4 model;
 
     void main()
     {
         gl_Position = projection * view * model * vec4(aPos, 1.0);
-        vCol = aCol;
+        vNormal = normalize(mat3(transpose(inverse(model))) * aNormal);
+        vUv = aUv;
+
+        vec3 t = normalize(vec3(model * vec4(aTangent, 0.0)));
+        vec3 n = normalize(vec3(model * vec4(aNormal, 0.0)));
+        vec3 b = cross(n, t);
+        tbn = mat3(t, b, n);
+
+        vPos = model * vec4(aPos, 1.0);
     }
 )";
 
 const auto *fragment_shader_src = R"(
     #version 460 core
 
-    in vec3 vCol;
+    layout(std140, binding = 0) uniform camera
+    {
+        mat4 view;
+        mat4 projection;
+        vec3 eye;
+    };
+
+    struct PointLight
+    {
+        vec3 point;
+        vec3 point_colour;
+        vec3 attenuation;
+    };
+
+    layout(std430, binding = 1) readonly buffer lights
+    {
+        int num_points;
+        PointLight points[];
+    };
+
+    in vec3 vNormal;
+    in vec3 vUv;
+    in vec4 vPos;
+    in mat3 tbn;
 
     out vec4 FragColor;
 
+    vec3 calc_point(int index)
+    {
+        vec3 point = points[index].point;
+        vec3 point_colour = points[index].point_colour;
+        vec3 attenuation = points[index].attenuation;
+
+        vec3 n = normalize(vNormal);
+        n = normalize(tbn * n);
+
+        float distance = length(point - vPos.xyz);
+        float att = 1.0 / (attenuation.x + (attenuation.y * distance) + (attenuation.z * (distance * distance)));
+
+        vec3 light_dir = normalize(point - vPos.xyz);
+        float diff = max(dot(n, light_dir), 0.0);
+
+        vec3 reflect_dir = reflect(-light_dir, n);
+        float spec = pow(max(dot(normalize(eye - vPos.xyz), reflect_dir), 0.0), 32);
+
+        return ((diff + spec) * att) * point_colour;
+    }
+
+
     void main()
     {
-        FragColor = vec4(vCol, 1.0);
+        vec4 albedo = vec4(1.0, 0.0, 0.0, 1.0);
+        vec3 colour = vec3(0.5);
+
+        for (int i = 0; i < num_points; ++i)
+        {
+            colour += calc_point(i);
+        }
+
+        FragColor = vec4(colour * albedo.rgb, 1.0);
     }
 )";
 
@@ -106,6 +182,9 @@ auto main() -> int
     auto move_backward = false;
     auto move_left = false;
     auto move_right = false;
+
+    auto light_buffer = Buffer{10240u};
+    auto player_light = PointLightBuffer{{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.09f, 0.032f}};
 
     while (window.running())
     {
@@ -183,11 +262,18 @@ auto main() -> int
 
         const auto camera_pos = camera.position();
 
+        player_light.position = camera_pos;
+
         camera_buffer.write(reinterpret_cast<const std::uint8_t *>(camera.view()), sizeof(Matrix4), 0);
         camera_buffer.write(
             reinterpret_cast<const std::uint8_t *>(camera.projection()), sizeof(Matrix4), sizeof(Matrix4));
         camera_buffer.write(reinterpret_cast<const std::uint8_t *>(&camera_pos), sizeof(Vector3), sizeof(Matrix4) * 2);
         ::glBindBufferBase(GL_UNIFORM_BUFFER, 0, camera_buffer.native_handle());
+
+        const auto light_count = 1;
+        light_buffer.write(reinterpret_cast<const std::uint8_t *>(&light_count), sizeof(int), 0);
+        light_buffer.write(reinterpret_cast<const std::uint8_t *>(&player_light), sizeof(PointLightBuffer), 16);
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, light_buffer.native_handle());
 
         material.set_uniform("model", cube_model);
 

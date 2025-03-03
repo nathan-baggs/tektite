@@ -4,6 +4,7 @@
 
 #include "clib.h"
 #include "error.h"
+#include "log.h"
 #include "opengl.h"
 
 namespace
@@ -38,8 +39,10 @@ Shader::Shader(const char *source, ShaderType type)
 
     if (result != GL_TRUE)
     {
-        char log[512];
-        ::glGetShaderInfoLog(handle_, sizeof(log), nullptr, log);
+        char shader_log[512];
+        ::glGetShaderInfoLog(handle_, sizeof(shader_log), nullptr, shader_log);
+
+        log(shader_log);
 
         ensure(result, ErrorCode::FAILED_TO_COMPILE_SHADER);
     }

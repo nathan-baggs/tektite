@@ -27,12 +27,18 @@ Mesh::Mesh(
 
     ::glEnableVertexArrayAttrib(vao_, 0);
     ::glEnableVertexArrayAttrib(vao_, 1);
+    ::glEnableVertexArrayAttrib(vao_, 2);
+    ::glEnableVertexArrayAttrib(vao_, 3);
 
     ::glVertexArrayAttribFormat(vao_, 0, 3, GL_FLOAT, GL_FALSE, offsetof(VertexData, position));
-    ::glVertexArrayAttribFormat(vao_, 1, 3, GL_FLOAT, GL_FALSE, offsetof(VertexData, colour));
+    ::glVertexArrayAttribFormat(vao_, 1, 3, GL_FLOAT, GL_FALSE, offsetof(VertexData, normal));
+    ::glVertexArrayAttribFormat(vao_, 2, 3, GL_FLOAT, GL_FALSE, offsetof(VertexData, tangent));
+    ::glVertexArrayAttribFormat(vao_, 3, 2, GL_FLOAT, GL_FALSE, offsetof(VertexData, uv));
 
     ::glVertexArrayAttribBinding(vao_, 0, 0);
     ::glVertexArrayAttribBinding(vao_, 1, 0);
+    ::glVertexArrayAttribBinding(vao_, 2, 0);
+    ::glVertexArrayAttribBinding(vao_, 3, 0);
 }
 
 auto Mesh::bind() const -> void
