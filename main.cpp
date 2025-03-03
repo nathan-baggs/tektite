@@ -31,6 +31,21 @@ struct PointLightBuffer
 };
 #pragma warning(pop)
 
+#pragma warning(push)
+#pragma warning(disable : 4324)
+struct MaterialParams
+{
+    alignas(16) Vector3 checker_colour1;
+    alignas(16) Vector3 checker_colour2;
+    alignas(16) Vector3 wood_colour1;
+    alignas(16) Vector3 wood_colour2;
+    alignas(16) Vector3 wood_colour3;
+    alignas(16) Vector3 metal_colour;
+    alignas(16) Vector3 water_colour;
+    float normal_scale;
+};
+#pragma warning(pop)
+
 const auto *vertex_shader_src = R"(
     #version 460 core
 
@@ -44,10 +59,10 @@ const auto *vertex_shader_src = R"(
     layout (location = 0) in vec3 aPos;
     layout (location = 1) in vec3 aNormal;
     layout (location = 2) in vec3 aTangent;
-    layout (location = 3) in vec3 aUv;
+    layout (location = 3) in vec2 aUv;
 
     out vec3 vNormal;
-    out vec3 vUv;
+    out vec2 vUv;
     out vec4 vPos;
     out mat3 tbn;
 
@@ -91,20 +106,76 @@ const auto *fragment_shader_src = R"(
         PointLight points[];
     };
 
+    struct Material
+    {
+        vec3 checker_colour1;
+        vec3 checker_colour2;
+        vec3 wood_colour1;
+        vec3 wood_colour2;
+        vec3 wood_colour3;
+        vec3 metal_colour;
+        vec3 water_colour;
+        float normal_scale;
+    };
+        
+    layout(std430, binding = 2) readonly buffer material_params
+    {
+        Material materials[];
+    };
+
+
     in vec3 vNormal;
-    in vec3 vUv;
+    in vec2 vUv;
     in vec4 vPos;
     in mat3 tbn;
 
     out vec4 FragColor;
 
-    vec3 calc_point(int index)
+    uniform float time;
+
+    float random(vec2 st)   
+    {
+        return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+    }
+
+    float noise(vec2 st)
+    {
+        vec2 i = floor(st);
+        vec2 f = fract(st);
+
+        float a = random(i);
+        float b = random(i + vec2(1.0, 0.0));
+        float c = random(i + vec2(0.0, 1.0));
+        float d = random(i + vec2(1.0, 1.0));
+
+        vec2 u = f * f * (3.0 - 2.0 * f);
+
+        return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+    }    
+
+    float fbm(vec2 st)
+    {
+        float value = 0.0;
+        float amplitud = .5;
+        float frequency = 0.;
+
+        for (int i = 0; i < 6; i++)
+        {   
+            value += amplitud * noise(st);
+            st *= 2.;
+            amplitud *= .5;
+        }
+
+        return value;
+    }
+
+    vec3 calc_point(int index, vec3 normal)
     {
         vec3 point = points[index].point;
         vec3 point_colour = points[index].point_colour;
         vec3 attenuation = points[index].attenuation;
 
-        vec3 n = normalize(vNormal);
+        vec3 n = normalize(normal);
         n = normalize(tbn * n);
 
         float distance = length(point - vPos.xyz);
@@ -119,18 +190,98 @@ const auto *fragment_shader_src = R"(
         return ((diff + spec) * att) * point_colour;
     }
 
+    float sdf_lens(vec2 p, float width, float height)
+    {
+        float d = height / width - width / 4.0;
+        float r = width / 2.0 + d;
+        
+        p = abs(p);
 
+        float b = sqrt(r * r - d * d);
+        vec4 par = p.xyxy - vec4(0.0, b, -d, 0.0);
+        return (par.y * d > p.x * b) ? length(par.xy) : length(par.zw) - r;
+    }
+
+    vec3 tile_weave(vec2 pos, vec2 scale, float count, float width, float smoothness)
+    {
+        vec2 i = floor(pos * scale);    
+        float c = mod(i.x + i.y, 2.0);
+        
+        vec2 p = fract(pos.st * scale);
+        p = mix(p.st, p.ts, c);
+        p = fract(p * vec2(count, 1.0));
+        
+        width *= 2.0;
+        p = p * 2.0 - 1.0;
+        float d = sdf_lens(p, width, 1.0);
+        vec2 grad = vec2(dFdx(d), dFdy(d));
+
+        float s = 1.0 - smoothstep(0.0, dot(abs(grad), vec2(1.0)) + smoothness, -d);
+        return vec3(s, normalize(grad) * smoothstep(1.0, 0.99, s) * smoothstep(0.0, 0.01, s)); 
+    }
+
+    vec3 checker_pattern(vec3 colour1, vec3 colour2)
+    {
+        vec2 uv = vUv * 10.0;
+        bool c = (mod(floor(uv.x) + floor(uv.y), 2.0) > 0.0);
+        return c ? colour1 : colour2;
+    }
+
+    vec3 wood_pattern(vec3 colour1, vec3 colour2, vec3 colour3)
+    {
+        vec2 st = vUv;
+        float v0 = smoothstep(-1.0, 1.0, sin(st.x * 14.0 + fbm(st.xx * vec2(100.0, 12.0)) * 8.0));
+        float v1 = random(st);
+        float v2 = noise(st * vec2(200.0, 14.0)) - noise(st * vec2(1000.0, 64.0));
+
+        vec3 col = colour1;
+        col = mix(col, colour2, v0);
+        col = mix(col, colour3, v1 * 0.5);
+        col -= v2 * 0.2;
+        
+        return col;
+    }
+
+    vec3 metal_pattern(vec3 colour)
+    {
+        vec2 uv = vUv * 5.0;
+
+        float n = fbm(uv);
+
+        float streaks = sin(uv.y * 50.0 + n * 10.0);
+        streaks = smoothstep(0.4, 0.6, streaks);
+
+        return colour * (0.5 + 0.5 * n) * (0.8 + 0.2 * streaks);
+    }
+
+    vec3 water_pattern(vec3 colour)
+    {
+        vec2 uv = vUv * 5.0;
+
+        float wave = fbm(uv + vec2(0.0, time * 0.1)) - fbm(uv - vec2(0.0, time * 0.1));
+        return colour + vec3(0.0, 0.2, 0.3) * wave;
+    }
+
+    vec3 metal_bump_normal_pattern(float scale)
+    {
+        return vec3(tile_weave(fract(vUv * 2), vec2(8.0), 3.0, 0.75, 1).yz, 1.0) * scale;
+    }
+    
     void main()
     {
-        vec4 albedo = vec4(1.0, 0.0, 0.0, 1.0);
-        vec3 colour = vec3(0.5);
+        vec3 albedo = checker_pattern(materials[0].checker_colour1, materials[0].checker_colour2);
+        albedo += wood_pattern(materials[0].wood_colour1, materials[0].wood_colour2, materials[0].wood_colour3);
+        albedo += metal_pattern(materials[0].metal_colour);
+        albedo += water_pattern(materials[0].water_colour);
+        
+        vec3 colour = vec3(0.3);
 
         for (int i = 0; i < num_points; ++i)
         {
-            colour += calc_point(i);
+            colour += calc_point(i, metal_bump_normal_pattern(materials[0].normal_scale));
         }
 
-        FragColor = vec4(colour * albedo.rgb, 1.0);
+        FragColor = vec4(colour * albedo, 1.0);
     }
 )";
 
@@ -178,6 +329,36 @@ auto main() -> int
     auto sphere_model = Matrix4{{6.0f, 0.0f, 0.0f}, {3.0f, 3.0f, 3.0f}};
     auto cylinder_model = Matrix4{{-6.0f, 0.0f, 0.0f}, {3.0f, 3.0f, 3.0f}};
 
+    auto cube_material_params = MaterialParams{
+        {0.0f, 0.0f, 0.0f},
+        {0.58f, 0.0f, 0.83f},
+        {0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f},
+        1.0f};
+
+    auto sphere_material_params = MaterialParams{
+        {0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f},
+        {0.86f, 0.86f, 0.57f},
+        {0.39f, 0.26f, 0.19f},
+        {0.93f, 0.49f, 0.5f},
+        {0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f},
+        0.0f};
+
+    auto cylinder_material_params = MaterialParams{
+        {0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f},
+        {0.3f, 0.3f, 0.3f},
+        {0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f},
+        {1.0f, 0.75f, 0.0f},
+        0.0f};
+
     auto move_forward = false;
     auto move_backward = false;
     auto move_left = false;
@@ -185,6 +366,10 @@ auto main() -> int
 
     auto light_buffer = Buffer{10240u};
     auto player_light = PointLightBuffer{{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.09f, 0.032f}};
+
+    auto material_params_buffer = Buffer{1024u};
+
+    auto time = 0.0f;
 
     while (window.running())
     {
@@ -260,6 +445,9 @@ auto main() -> int
 
         material.use();
 
+        time += 1.0f / 30.0f;
+        material.set_uniform("time", time);
+
         const auto camera_pos = camera.position();
 
         player_light.position = camera_pos;
@@ -275,7 +463,11 @@ auto main() -> int
         light_buffer.write(reinterpret_cast<const std::uint8_t *>(&player_light), sizeof(PointLightBuffer), 16);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, light_buffer.native_handle());
 
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, material_params_buffer.native_handle());
+
         material.set_uniform("model", cube_model);
+        material_params_buffer.write(
+            reinterpret_cast<const std::uint8_t *>(&cube_material_params), sizeof(MaterialParams), 0);
 
         cube_mesh.bind();
         ::glDrawElements(
@@ -283,6 +475,8 @@ auto main() -> int
         cube_mesh.unbind();
 
         material.set_uniform("model", sphere_model);
+        material_params_buffer.write(
+            reinterpret_cast<const std::uint8_t *>(&sphere_material_params), sizeof(MaterialParams), 0);
 
         sphere_mesh.bind();
         ::glDrawElements(
@@ -293,6 +487,8 @@ auto main() -> int
         sphere_mesh.unbind();
 
         material.set_uniform("model", cylinder_model);
+        material_params_buffer.write(
+            reinterpret_cast<const std::uint8_t *>(&cylinder_material_params), sizeof(MaterialParams), 0);
 
         cylinder_mesh.bind();
         ::glDrawElements(

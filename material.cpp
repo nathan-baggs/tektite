@@ -52,7 +52,7 @@ auto Material::set_uniform(const char *name, float obj) const -> void
 {
     if (const auto location = ::glGetUniformLocation(handle_, name); location != -1)
     {
-        ::glUniform1i(location, obj);
+        ::glUniform1f(location, obj);
     }
 }
 

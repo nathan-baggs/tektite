@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "clib.h"
-#include "log.h"
 #include "vertex_data.h"
 
 static constexpr VertexData g_cube_vertices[] = {
@@ -44,7 +43,6 @@ inline void generate_sphere(
     std::uint32_t **indices,
     std::uint32_t *index_count)
 {
-    log("generating sphere");
     const auto sector_step = static_cast<float>(2.0f * M_PI / sector_count);
     const auto stack_step = static_cast<float>(M_PI / stack_count);
 
@@ -53,8 +51,6 @@ inline void generate_sphere(
 
     *vertices = static_cast<VertexData *>(malloc(*vertex_count * sizeof(VertexData)));
     *indices = static_cast<std::uint32_t *>(malloc(*index_count * sizeof(std::uint32_t)));
-
-    log("created vertices");
 
     auto vertex_cursor = 0u;
     for (auto i = 0u; i <= stack_count; ++i)
@@ -88,8 +84,6 @@ inline void generate_sphere(
         }
     }
 
-    log("creating indices");
-
     auto index_cursor = 0u;
 
     for (auto i = 0u; i < stack_count; ++i)
@@ -108,8 +102,6 @@ inline void generate_sphere(
             (*indices)[index_cursor++] = k2 + 1;
         }
     }
-
-    log("created sphere");
 }
 
 inline void generate_cylinder(
