@@ -33,15 +33,18 @@ struct PointLightBuffer
 
 #pragma warning(push)
 #pragma warning(disable : 4324)
-struct MaterialParams
+struct ModelData
 {
+    Matrix4 model;
     alignas(16) Vector3 checker_colour1;
     alignas(16) Vector3 checker_colour2;
     alignas(16) Vector3 wood_colour1;
     alignas(16) Vector3 wood_colour2;
     alignas(16) Vector3 wood_colour3;
+    float wood_scale;
     alignas(16) Vector3 metal_colour;
-    alignas(16) Vector3 water_colour;
+    alignas(16) Vector3 water_colour1;
+    alignas(16) Vector3 water_colour2;
     float normal_scale;
 };
 #pragma warning(pop)
@@ -56,6 +59,26 @@ const auto *vertex_shader_src = R"(
         vec3 eye;
     };
 
+    struct ModelData
+    {
+        mat4 model;
+        vec3 checker_colour1;
+        vec3 checker_colour2;
+        vec3 wood_colour1;
+        vec3 wood_colour2;
+        vec3 wood_colour3;
+        float wood_scale;
+        vec3 metal_colour;
+        vec3 water_colour1;
+        vec3 water_colour2;
+        float normal_scale;
+    };
+
+    layout(std430, binding = 2) buffer model_data
+    {
+        ModelData data[];
+    };
+
     layout (location = 0) in vec3 aPos;
     layout (location = 1) in vec3 aNormal;
     layout (location = 2) in vec3 aTangent;
@@ -65,11 +88,12 @@ const auto *vertex_shader_src = R"(
     out vec2 vUv;
     out vec4 vPos;
     out mat3 tbn;
-
-    uniform mat4 model;
+    out flat int instance_id;
 
     void main()
     {
+        mat4 model = data[gl_InstanceID + gl_BaseInstance].model;
+
         gl_Position = projection * view * model * vec4(aPos, 1.0);
         vNormal = normalize(mat3(transpose(inverse(model))) * aNormal);
         vUv = aUv;
@@ -80,6 +104,8 @@ const auto *vertex_shader_src = R"(
         tbn = mat3(t, b, n);
 
         vPos = model * vec4(aPos, 1.0);
+    
+        instance_id = gl_InstanceID + gl_BaseInstance;
     }
 )";
 
@@ -106,28 +132,31 @@ const auto *fragment_shader_src = R"(
         PointLight points[];
     };
 
-    struct Material
+    struct ModelData
     {
+        mat4 model;
         vec3 checker_colour1;
         vec3 checker_colour2;
         vec3 wood_colour1;
         vec3 wood_colour2;
         vec3 wood_colour3;
+        float wood_scale;
         vec3 metal_colour;
-        vec3 water_colour;
+        vec3 water_colour1;
+        vec3 water_colour2;
         float normal_scale;
     };
-        
-    layout(std430, binding = 2) readonly buffer material_params
-    {
-        Material materials[];
-    };
 
+    layout(std430, binding = 2) buffer model_data
+    {
+        ModelData data[];
+    };
 
     in vec3 vNormal;
     in vec2 vUv;
     in vec4 vPos;
     in mat3 tbn;
+    in flat int instance_id;
 
     out vec4 FragColor;
 
@@ -254,12 +283,12 @@ const auto *fragment_shader_src = R"(
         return colour * (0.5 + 0.5 * n) * (0.8 + 0.2 * streaks);
     }
 
-    vec3 water_pattern(vec3 colour)
+    vec3 water_pattern(vec3 colour1, vec3 colour2)
     {
         vec2 uv = vUv * 5.0;
 
         float wave = fbm(uv + vec2(0.0, time * 0.1)) - fbm(uv - vec2(0.0, time * 0.1));
-        return colour + vec3(0.0, 0.2, 0.3) * wave;
+        return colour1 + colour2 * wave;
     }
 
     vec3 metal_bump_normal_pattern(float scale)
@@ -269,16 +298,14 @@ const auto *fragment_shader_src = R"(
     
     void main()
     {
-        vec3 albedo = checker_pattern(materials[0].checker_colour1, materials[0].checker_colour2);
-        albedo += wood_pattern(materials[0].wood_colour1, materials[0].wood_colour2, materials[0].wood_colour3);
-        albedo += metal_pattern(materials[0].metal_colour);
-        albedo += water_pattern(materials[0].water_colour);
+        vec3 albedo = checker_pattern(data[instance_id].checker_colour1, data[instance_id].checker_colour2);
+        albedo += water_pattern(data[instance_id].water_colour1, data[instance_id].water_colour2);
         
         vec3 colour = vec3(0.3);
 
         for (int i = 0; i < num_points; ++i)
         {
-            colour += calc_point(i, metal_bump_normal_pattern(materials[0].normal_scale));
+            colour += calc_point(i, metal_bump_normal_pattern(data[instance_id].normal_scale));
         }
 
         FragColor = vec4(colour * albedo, 1.0);
@@ -325,39 +352,91 @@ auto main() -> int
         Camera{{0.0f, 0.0f, 15.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, M_PI / 4.0f, width, height, 0.1f, 100.0f};
     const auto camera_buffer = Buffer{sizeof(Matrix4) * 2 + sizeof(Vector3)};
 
-    auto cube_model = Matrix4{{5.0f, 5.0f, 5.0f}, Matrix4::Scale{}};
-    auto sphere_model = Matrix4{{6.0f, 0.0f, 0.0f}, {3.0f, 3.0f, 3.0f}};
-    auto cylinder_model = Matrix4{{-6.0f, 0.0f, 0.0f}, {3.0f, 3.0f, 3.0f}};
+    static constexpr auto max_models_per_type = 100u;
+    auto cube_model_count = 2u;
+    ModelData cube_models[] = {
+        {{{5.0f, 5.0f, 5.0f}, Matrix4::Scale{}},
+         {0.0f, 0.0f, 0.0f},
+         {0.58f, 0.0f, 0.83f},
+         {0.0f, 0.0f, 0.0f},
+         {0.0f, 0.0f, 0.0f},
+         {0.0f, 0.0f, 0.0f},
+         0.0f,
+         {0.0f, 0.0f, 0.0f},
+         {0.0f, 0.0f, 0.0f},
+         {0.0f, 0.0f, 0.0f},
+         1.0f},
+        {{{0.0f, 5.0f, -10.0f}, {2.0f, 2.0f, 2.0f}},
+         {0.0f, 0.0f, 0.0f},
+         {0.58f, 0.0f, 0.83f},
+         {0.0f, 0.0f, 0.0f},
+         {0.0f, 0.0f, 0.0f},
+         {0.0f, 0.0f, 0.0f},
+         0.0f,
+         {0.0f, 0.0f, 0.0f},
+         {0.0f, 0.0f, 0.0f},
+         {0.0f, 0.0f, 0.0f},
+         1.0f}};
+    auto sphere_model_count = 2u;
+    ModelData sphere_models[] = {
+        {{{6.0f, 0.0f, 0.0f}, {3.0f, 3.0f, 3.0f}},
+         {0.0f, 0.0f, 0.0f},
+         {0.0f, 0.0f, 0.0f},
+         {0.86f, 0.86f, 0.57f},
+         {0.39f, 0.26f, 0.19f},
+         {0.93f, 0.49f, 0.5f},
+         1.0f,
+         {0.0f, 0.0f, 0.0f},
+         {0.0f, 0.0f, 0.0f},
+         {0.0f, 0.0f, 0.0f},
+         0.0f},
+        {{{6.0f, 5.0f, -10.0f}, {2.0f, 2.0f, 2.0f}},
+         {0.0f, 0.0f, 0.0f},
+         {0.0f, 0.0f, 0.0f},
+         {0.0f, 0.0f, 0.0f},
+         {0.0f, 0.0f, 0.0f},
+         {0.0f, 0.0f, 0.0f},
+         1.0f,
+         {0.0f, 0.0f, 0.0f},
+         {0.8f, 0.8f, 0.8f},
+         {0.0f, 0.0f, 1.0f},
+         0.0f}};
+    auto cylinder_model_count = 2u;
+    ModelData cylinder_models[] = {
+        {{{-6.0f, 0.0f, 0.0f}, {3.0f, 3.0f, 3.0f}},
+         {0.0f, 0.0f, 0.0f},
+         {0.0f, 0.0f, 0.0f},
+         {0.3f, 0.3f, 0.3f},
+         {0.0f, 0.0f, 0.0f},
+         {0.0f, 0.0f, 0.0f},
+         1.0f,
+         {0.0f, 0.0f, 0.0f},
+         {0.8f, 0.8f, 0.8f},
+         {1.0f, 0.75f, 0.0f},
+         0.0f},
+        {{{-6.0f, 5.0f, -10.0f}, {2.0f, 2.0f, 2.0f}},
+         {0.0f, 1.0f, 0.0f},
+         {0.0f, 0.0f, 1.0f},
+         {0.0f, 0.0f, 0.0f},
+         {0.0f, 0.0f, 0.0f},
+         {0.0f, 0.0f, 0.0f},
+         1.0f,
+         {0.0f, 0.0f, 0.0f},
+         {0.8f, 0.8f, 0.8f},
+         {1.0f, 0.75f, 0.0f},
+         0.5f}};
 
-    auto cube_material_params = MaterialParams{
-        {0.0f, 0.0f, 0.0f},
-        {0.58f, 0.0f, 0.83f},
-        {0.0f, 0.0f, 0.0f},
-        {0.0f, 0.0f, 0.0f},
-        {0.0f, 0.0f, 0.0f},
-        {0.0f, 0.0f, 0.0f},
-        {0.0f, 0.0f, 0.0f},
-        1.0f};
-
-    auto sphere_material_params = MaterialParams{
-        {0.0f, 0.0f, 0.0f},
-        {0.0f, 0.0f, 0.0f},
-        {0.86f, 0.86f, 0.57f},
-        {0.39f, 0.26f, 0.19f},
-        {0.93f, 0.49f, 0.5f},
-        {0.0f, 0.0f, 0.0f},
-        {0.0f, 0.0f, 0.0f},
-        0.0f};
-
-    auto cylinder_material_params = MaterialParams{
-        {0.0f, 0.0f, 0.0f},
-        {0.0f, 0.0f, 0.0f},
-        {0.3f, 0.3f, 0.3f},
-        {0.0f, 0.0f, 0.0f},
-        {0.0f, 0.0f, 0.0f},
-        {0.0f, 0.0f, 0.0f},
-        {1.0f, 0.75f, 0.0f},
-        0.0f};
+    auto model_data_buffer = Buffer{sizeof(ModelData) * max_models_per_type * 3u};
+    model_data_buffer.write(
+        reinterpret_cast<const std::uint8_t *>(cube_models), sizeof(ModelData) * cube_model_count, 0);
+    model_data_buffer.write(
+        reinterpret_cast<const std::uint8_t *>(sphere_models),
+        sizeof(ModelData) * sphere_model_count,
+        sizeof(ModelData) * max_models_per_type);
+    model_data_buffer.write(
+        reinterpret_cast<const std::uint8_t *>(cylinder_models),
+        sizeof(ModelData) * cylinder_model_count,
+        sizeof(ModelData) * max_models_per_type * 2u);
 
     auto move_forward = false;
     auto move_backward = false;
@@ -463,39 +542,36 @@ auto main() -> int
         light_buffer.write(reinterpret_cast<const std::uint8_t *>(&player_light), sizeof(PointLightBuffer), 16);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, light_buffer.native_handle());
 
-        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, material_params_buffer.native_handle());
-
-        material.set_uniform("model", cube_model);
-        material_params_buffer.write(
-            reinterpret_cast<const std::uint8_t *>(&cube_material_params), sizeof(MaterialParams), 0);
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, model_data_buffer.native_handle());
 
         cube_mesh.bind();
-        ::glDrawElements(
-            GL_TRIANGLES, cube_mesh.index_count(), GL_UNSIGNED_INT, reinterpret_cast<void *>(cube_mesh.index_offset()));
+        ::glDrawElementsInstancedBaseInstance(
+            GL_TRIANGLES,
+            cube_mesh.index_count(),
+            GL_UNSIGNED_INT,
+            reinterpret_cast<void *>(cube_mesh.index_offset()),
+            cube_model_count,
+            0u);
         cube_mesh.unbind();
 
-        material.set_uniform("model", sphere_model);
-        material_params_buffer.write(
-            reinterpret_cast<const std::uint8_t *>(&sphere_material_params), sizeof(MaterialParams), 0);
-
         sphere_mesh.bind();
-        ::glDrawElements(
+        ::glDrawElementsInstancedBaseInstance(
             GL_TRIANGLES,
             sphere_mesh.index_count(),
             GL_UNSIGNED_INT,
-            reinterpret_cast<void *>(sphere_mesh.index_offset()));
+            reinterpret_cast<void *>(sphere_mesh.index_offset()),
+            sphere_model_count,
+            max_models_per_type);
         sphere_mesh.unbind();
 
-        material.set_uniform("model", cylinder_model);
-        material_params_buffer.write(
-            reinterpret_cast<const std::uint8_t *>(&cylinder_material_params), sizeof(MaterialParams), 0);
-
         cylinder_mesh.bind();
-        ::glDrawElements(
+        ::glDrawElementsInstancedBaseInstance(
             GL_TRIANGLES,
             cylinder_mesh.index_count(),
             GL_UNSIGNED_INT,
-            reinterpret_cast<void *>(cylinder_mesh.index_offset()));
+            reinterpret_cast<void *>(cylinder_mesh.index_offset()),
+            cylinder_model_count,
+            max_models_per_type * 2u);
         cylinder_mesh.unbind();
 
         window.swap();
