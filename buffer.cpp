@@ -11,7 +11,7 @@ Buffer::Buffer(std::uint32_t size)
     , size_{size}
 {
     ::glCreateBuffers(1, &buffer_);
-    ::glNamedBufferStorage(buffer_, size, nullptr, GL_DYNAMIC_STORAGE_BIT);
+    ::glNamedBufferStorage(buffer_, size, nullptr, GL_DYNAMIC_STORAGE_BIT | GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
 }
 
 auto Buffer::write(const std::uint8_t *data, std::size_t size, std::size_t offset) const -> void

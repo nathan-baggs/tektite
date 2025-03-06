@@ -32,6 +32,16 @@ struct PointLightBuffer
 };
 #pragma warning(pop)
 
+struct Entity
+{
+    std::uint32_t sphere_start;
+    std::uint32_t sphere_end;
+    std::uint32_t cylinder_start;
+    std::uint32_t cylinder_end;
+    std::uint32_t cube_start;
+    std::uint32_t cube_end;
+};
+
 const auto *vertex_shader_src = R"(
     #version 460 core
 
@@ -332,7 +342,7 @@ auto main() -> int
     auto cylinder_mesh = Mesh{cylinder_vertices, cylinder_vertex_count, cylinder_indices, cylinder_index_count};
 
     auto camera =
-        Camera{{0.0f, 0.0f, 15.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, M_PI / 4.0f, width, height, 0.1f, 100.0f};
+        Camera{{-2.0f, 1.0f, 5.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, M_PI / 4.0f, width, height, 0.1f, 100.0f};
     const auto camera_buffer = Buffer{sizeof(Matrix4) * 2 + sizeof(Vector3)};
 
     auto model_data_buffer = Buffer{sizeof(ModelData) * max_models_per_type * 3u};
@@ -359,10 +369,16 @@ auto main() -> int
 
     auto time = 0.0f;
 
+    auto player = Entity{0u, 0u, 0u, 10u, 0u, 6u};
+
     while (window.running())
     {
         Event evt{};
         auto has_event = window.pump_message(&evt);
+
+        auto delta_x = 0.0f;
+        auto delta_y = 0.0f;
+
         while (has_event)
         {
             switch (evt.type)
@@ -393,10 +409,7 @@ auto main() -> int
                 case MOUSE_MOVE:
                 {
                     static constexpr auto sensitivity = float{0.002f};
-                    const auto delta_x = evt.data.mouse_move.delta_x * sensitivity;
-                    const auto delta_y = evt.data.mouse_move.delta_y * sensitivity;
-                    camera.adjust_yaw(delta_x);
-                    camera.adjust_pitch(-delta_y);
+                    delta_x += evt.data.mouse_move.delta_x * sensitivity;
                     break;
                 }
             }
@@ -422,11 +435,48 @@ auto main() -> int
             walk_direction += camera.right();
         }
 
+        auto *mapped_model_data =
+            reinterpret_cast<ModelData *>(::glMapNamedBuffer(model_data_buffer.native_handle(), GL_WRITE_ONLY));
+
         const auto speed = 0.4f;
         if (walk_direction != Vector3{})
         {
-            camera.translate(Vector3::normalise(walk_direction) * speed);
+            const auto translation = Vector3::normalise(walk_direction) * speed;
+            camera.translate(translation);
+
+            const auto translation_matrix = Matrix4{translation};
+            // no spheres
+
+            for (auto i = player.cube_start; i < player.cube_end; ++i)
+            {
+                mapped_model_data[i].model = translation_matrix * mapped_model_data[i].model;
+            }
+            for (auto i = player.cylinder_start; i < player.cylinder_end; ++i)
+            {
+                mapped_model_data[i + (max_models_per_type * 2u)].model =
+                    translation_matrix * mapped_model_data[i + (max_models_per_type * 2u)].model;
+            }
         }
+
+        if (delta_x != 0.0f || delta_y != 0.0f)
+        {
+            camera.adjust_yaw(delta_x);
+            camera.adjust_pitch(-delta_y);
+
+            for (auto i = player.cube_start; i < player.cube_end; ++i)
+            {
+                mapped_model_data[i].model = Matrix4{camera.position()} * Matrix4{Quaternion{0.0f, -delta_x, 0.0f}} *
+                                             Matrix4{-camera.position()} * mapped_model_data[i].model;
+            }
+            for (auto i = player.cylinder_start; i < player.cylinder_end; ++i)
+            {
+                mapped_model_data[i + (max_models_per_type * 2u)].model =
+                    Matrix4{camera.position()} * Matrix4{Quaternion{0.0f, -delta_x, -0.0f}} *
+                    Matrix4{-camera.position()} * mapped_model_data[i + (max_models_per_type * 2u)].model;
+            }
+        }
+
+        ::glUnmapNamedBuffer(model_data_buffer.native_handle());
 
         ::glClearColor(0.0f, 0.5f, 1.0f, 1.0f);
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

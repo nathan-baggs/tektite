@@ -59,6 +59,8 @@
     DO(::PFNGLBLITNAMEDFRAMEBUFFERPROC, glBlitNamedFramebuffer)                                                        \
     DO(::PFNGLDRAWELEMENTSINSTANCEDPROC, glDrawElementsInstanced)                                                      \
     DO(::PFNGLDRAWELEMENTSINSTANCEDBASEINSTANCEPROC, glDrawElementsInstancedBaseInstance)                              \
+    DO(::PFNGLMAPNAMEDBUFFERPROC, glMapNamedBuffer)                                                                    \
+    DO(::PFNGLUNMAPNAMEDBUFFERPROC, glUnmapNamedBuffer)                                                                \
     DO(::PFNGLDRAWARRAYSEXTPROC, glDrawArraysEXT)
 
 #define DO_DEFINE(TYPE, NAME) inline TYPE NAME;

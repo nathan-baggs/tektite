@@ -16,6 +16,24 @@ class Quaternion
         , z(z)
         , w(w)
     {
+        // normalise
+        const auto length = sqrt(x * x + y * y + z * z + w * w);
+    }
+
+    constexpr Quaternion(float yaw, float pitch, float roll)
+        : Quaternion()
+    {
+        const auto cy = cos(yaw * 0.5f);
+        const auto sy = sin(yaw * 0.5f);
+        const auto cp = cos(pitch * 0.5f);
+        const auto sp = sin(pitch * 0.5f);
+        const auto cr = cos(roll * 0.5f);
+        const auto sr = sin(roll * 0.5f);
+
+        x = sr * cp * cy - cr * sp * sy;
+        y = cr * sp * cy + sr * cp * sy;
+        z = cr * cp * sy - sr * sp * cy;
+        w = cr * cp * cy + sr * sp * sy;
     }
 
     constexpr auto operator*=(const Quaternion &quaternion) -> Quaternion &

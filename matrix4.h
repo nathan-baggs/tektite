@@ -34,9 +34,18 @@ class Matrix4
           })
     {
     }
+
     constexpr Matrix4(const std::array<float, 16u> &elements)
         : elements_(elements)
     {
+    }
+
+    Matrix4(const float *elements)
+    {
+        for (auto i = 0u; i < 16u; ++i)
+        {
+            elements_[i] = elements[i];
+        }
     }
 
     constexpr Matrix4(const Vector3 &translation)
@@ -129,7 +138,7 @@ class Matrix4
         return elements_.data();
     }
 
-    constexpr auto operator[](this auto &&self, std::size_t index) -> float &
+    constexpr auto operator[](this auto &&self, std::size_t index) -> auto
     {
         return self.elements_[index];
     }
