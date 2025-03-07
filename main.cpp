@@ -266,7 +266,7 @@ const auto *fragment_shader_src = R"(
 
     vec3 metal_pattern(vec3 colour)
     {
-        vec2 uv = vUv * 5.0;
+        vec2 uv = vUv * 15.0;
 
         float n = fbm(uv);
 
