@@ -69,6 +69,12 @@ auto CALLBACK window_proc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) -> 
 
             break;
         }
+        case WM_LBUTTONDOWN:
+        {
+            g_event = {.type = EventType::LEFT_MOUSE_CLICK};
+            g_has_event = true;
+            break;
+        }
     }
 
     return ::DefWindowProc(hWnd, Msg, wParam, lParam);

@@ -6,6 +6,7 @@
 
 #include "buffer.h"
 #include "camera.h"
+#include "dyn_array.h"
 #include "event.h"
 #include "log.h"
 #include "material.h"
@@ -40,6 +41,12 @@ struct Entity
     std::uint32_t cylinder_end;
     std::uint32_t cube_start;
     std::uint32_t cube_end;
+};
+
+struct Bullet
+{
+    Vector3 position;
+    Vector3 velocity;
 };
 
 const auto *vertex_shader_src = R"(
@@ -365,6 +372,8 @@ auto main() -> int
     auto light_buffer = Buffer{10240u};
     auto player_light = PointLightBuffer{{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.09f, 0.032f}};
 
+    auto bullets = DynArray{sizeof(Bullet)};
+
     auto material_params_buffer = Buffer{1024u};
 
     auto time = 0.0f;
@@ -410,6 +419,12 @@ auto main() -> int
                 {
                     static constexpr auto sensitivity = float{0.002f};
                     delta_x += evt.data.mouse_move.delta_x * sensitivity;
+                    break;
+                }
+                case LEFT_MOUSE_CLICK:
+                {
+                    auto bullet = Bullet{camera.position() + camera.direction(), camera.direction() * 2.0f};
+                    bullets.push_back(&bullet);
                     break;
                 }
             }
@@ -496,9 +511,20 @@ auto main() -> int
         camera_buffer.write(reinterpret_cast<const std::uint8_t *>(&camera_pos), sizeof(Vector3), sizeof(Matrix4) * 2);
         ::glBindBufferBase(GL_UNIFORM_BUFFER, 0, camera_buffer.native_handle());
 
-        const auto light_count = 1;
+        const auto light_count = bullets.size() + 1;
         light_buffer.write(reinterpret_cast<const std::uint8_t *>(&light_count), sizeof(int), 0);
         light_buffer.write(reinterpret_cast<const std::uint8_t *>(&player_light), sizeof(PointLightBuffer), 16);
+        for (auto i = 0u; i < bullets.size(); ++i)
+        {
+            auto *bullet =
+                reinterpret_cast<Bullet *>(reinterpret_cast<std::uint8_t *>(bullets.begin()) + (i * sizeof(Bullet)));
+            bullet->position += bullet->velocity;
+            auto bullet_light = PointLightBuffer{{bullet->position}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.09f, 0.032f}};
+            light_buffer.write(
+                reinterpret_cast<const std::uint8_t *>(&bullet_light),
+                sizeof(PointLightBuffer),
+                16 + (sizeof(PointLightBuffer) * (i + 1)));
+        }
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, light_buffer.native_handle());
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, model_data_buffer.native_handle());

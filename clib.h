@@ -3,8 +3,11 @@
 #include <cstddef>
 
 #include <Windows.h>
+#include <intrin.h>
 
 #include "error.h"
+
+inline auto log(const char *msg) -> void;
 
 inline auto strlen(const char *str) -> std::size_t
 {
@@ -97,4 +100,35 @@ inline auto malloc(std::size_t size) -> void *
 inline auto free(void *ptr) -> void
 {
     ::HeapFree(::GetProcessHeap(), 0, ptr);
+}
+
+inline auto memcpy(void *dest, const void *src, std::size_t size) -> void *
+{
+    ::__movsb(static_cast<std::uint8_t *>(dest), static_cast<const std::uint8_t *>(src), size);
+    return dest;
+}
+
+inline auto memmove(void *dest, const void *src, std::size_t size) -> void *
+{
+    return ::MoveMemory(dest, src, size);
+}
+
+inline auto memcmp(const void *lhs, const void *rhs, std::size_t size) -> int
+{
+    const auto *lhs_bytes = static_cast<const std::uint8_t *>(lhs);
+    const auto *rhs_bytes = static_cast<const std::uint8_t *>(rhs);
+
+    for (auto i = 0u; i < size; ++i)
+    {
+        if (lhs_bytes[i] < rhs_bytes[i])
+        {
+            return -1;
+        }
+        else if (lhs_bytes[i] > rhs_bytes[i])
+        {
+            return 1;
+        }
+    }
+
+    return 0;
 }

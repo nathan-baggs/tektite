@@ -6,7 +6,8 @@ enum class EventType
 {
     KEY_DOWN,
     KEY_UP,
-    MOUSE_MOVE
+    MOUSE_MOVE,
+    LEFT_MOUSE_CLICK,
 };
 
 struct MouseMoveEvent
