@@ -4,6 +4,7 @@
 
 #include <Windows.h>
 #include <intrin.h>
+#include <ntsecapi.h>
 
 #include "error.h"
 
@@ -131,4 +132,12 @@ inline auto memcmp(const void *lhs, const void *rhs, std::size_t size) -> int
     }
 
     return 0;
+}
+
+inline auto rand() -> int
+{
+    char buffer[4]{};
+    ::RtlGenRandom(buffer, sizeof(buffer));
+
+    return *reinterpret_cast<int *>(buffer);
 }
