@@ -138,7 +138,7 @@ class Matrix4
         return elements_.data();
     }
 
-    constexpr auto operator[](this auto &&self, std::size_t index) -> auto
+    constexpr auto operator[](this auto &&self, std::size_t index) -> auto &
     {
         return self.elements_[index];
     }

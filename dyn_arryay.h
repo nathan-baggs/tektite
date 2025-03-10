@@ -6,6 +6,7 @@ class DynArray
 {
   public:
     DynArray(std::uint32_t element_size, std::uint32_t capacity = 2u);
+    ~DynArray();
 
     auto begin() const -> void *;
 
@@ -13,11 +14,9 @@ class DynArray
 
     auto element_size() const -> std::uint32_t;
 
-    auto size() const -> std::uint32_t;
-
     auto push_back(void *data) -> void *;
 
-    auto erase(void *data) -> void *;
+    auto erase(void *data) -> void;
 
   private:
     std::uint32_t element_size_;

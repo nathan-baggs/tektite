@@ -40,6 +40,11 @@ struct Vector3
         return {i, -j, k};
     }
 
+    constexpr static auto distance(const Vector3 &v1, const Vector3 &v2) -> float
+    {
+        return hypot(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
+    }
+
     constexpr auto operator==(const Vector3 &) const -> bool = default;
 
     float x;

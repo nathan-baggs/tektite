@@ -23,6 +23,11 @@ auto DynArray::end() const -> void *
     return end_;
 }
 
+auto DynArray::element_size() const -> std::uint32_t
+{
+    return element_size_;
+}
+
 auto DynArray::size() const -> std::uint32_t
 {
     return (end_ - begin_) / element_size_;
@@ -52,7 +57,7 @@ auto DynArray::push_back(void *data) -> void *
     return new_element;
 }
 
-auto DynArray::erase(void *data) -> void
+auto DynArray::erase(void *data) -> void *
 {
     for (auto *cursor = begin_; cursor != end_; cursor += element_size_)
     {
@@ -63,4 +68,6 @@ auto DynArray::erase(void *data) -> void
             break;
         }
     }
+
+    return end_;
 }

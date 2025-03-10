@@ -373,7 +373,7 @@ ModelData cube_models[] = {
 auto sphere_model_count = 10u;
 ModelData sphere_models[] = {
     {{{6.0f, 0.0f, 0.0f}, {3.0f, 3.0f, 3.0f}},
-     {0.0f, 0.0f, 0.0f},
+     {1.0f, 0.0f, 0.0f},
      {0.0f, 0.0f, 0.0f},
      {0.86f, 0.86f, 0.57f},
      {0.39f, 0.26f, 0.19f},

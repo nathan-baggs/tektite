@@ -423,7 +423,7 @@ auto main() -> int
                 }
                 case LEFT_MOUSE_CLICK:
                 {
-                    auto bullet = Bullet{camera.position() + camera.direction(), camera.direction() * 2.0f};
+                    auto bullet = Bullet{camera.position() + camera.direction() * 2.0f, camera.direction() * 2.0f};
                     bullets.push_back(&bullet);
                     break;
                 }
@@ -452,6 +452,9 @@ auto main() -> int
 
         auto *mapped_model_data =
             reinterpret_cast<ModelData *>(::glMapNamedBuffer(model_data_buffer.native_handle(), GL_WRITE_ONLY));
+
+        auto *enemy = &mapped_model_data[max_models_per_type];
+        const auto enemy_position = Vector3{enemy->model[12], enemy->model[13], enemy->model[14]};
 
         const auto speed = 0.4f;
         if (walk_direction != Vector3{})
@@ -491,8 +494,6 @@ auto main() -> int
             }
         }
 
-        ::glUnmapNamedBuffer(model_data_buffer.native_handle());
-
         ::glClearColor(0.0f, 0.5f, 1.0f, 1.0f);
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -511,6 +512,20 @@ auto main() -> int
         camera_buffer.write(reinterpret_cast<const std::uint8_t *>(&camera_pos), sizeof(Vector3), sizeof(Matrix4) * 2);
         ::glBindBufferBase(GL_UNIFORM_BUFFER, 0, camera_buffer.native_handle());
 
+        auto *cursor = reinterpret_cast<std::uint8_t *>(bullets.begin());
+
+        while (cursor != bullets.end())
+        {
+            const auto *bullet = reinterpret_cast<Bullet *>(cursor);
+            if (Vector3::distance(bullet->position, camera_pos) > 200.0f)
+            {
+                bullets.erase(cursor);
+                continue;
+            }
+
+            cursor += bullets.element_size();
+        }
+
         const auto light_count = bullets.size() + 1;
         light_buffer.write(reinterpret_cast<const std::uint8_t *>(&light_count), sizeof(int), 0);
         light_buffer.write(reinterpret_cast<const std::uint8_t *>(&player_light), sizeof(PointLightBuffer), 16);
@@ -519,15 +534,33 @@ auto main() -> int
             auto *bullet =
                 reinterpret_cast<Bullet *>(reinterpret_cast<std::uint8_t *>(bullets.begin()) + (i * sizeof(Bullet)));
             bullet->position += bullet->velocity;
-            auto bullet_light = PointLightBuffer{{bullet->position}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.09f, 0.032f}};
+            auto bullet_light = PointLightBuffer{{bullet->position}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.01f, 0.032f}};
             light_buffer.write(
                 reinterpret_cast<const std::uint8_t *>(&bullet_light),
                 sizeof(PointLightBuffer),
                 16 + (sizeof(PointLightBuffer) * (i + 1)));
+
+            auto *model_data = mapped_model_data + max_models_per_type + sphere_model_count + i;
+            model_data->model = Matrix4{bullet->position, {0.1f, 0.1f, 0.1f}};
+            model_data->checker_colour1 = {1.0f, 0.0f, 0.0f};
+            model_data->checker_colour2 = {1.0f, 0.0f, 0.0f};
+
+            if (Vector3::distance(bullet->position, enemy_position) < 3.0f)
+            {
+                const auto random_float = [](float min, float max) -> float
+                { return min + static_cast<float>(rand()) / (static_cast<float>(0xFFFFFFFF / (max - min))); };
+
+                enemy->model[12] = random_float(-20.0f, 20.0f);
+                enemy->model[14] = random_float(-20.0f, 20.0f);
+
+                log("hit");
+            }
         }
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, light_buffer.native_handle());
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, model_data_buffer.native_handle());
+
+        ::glUnmapNamedBuffer(model_data_buffer.native_handle());
 
         cube_mesh.bind();
         ::glDrawElementsInstancedBaseInstance(
@@ -545,7 +578,7 @@ auto main() -> int
             sphere_mesh.index_count(),
             GL_UNSIGNED_INT,
             reinterpret_cast<void *>(sphere_mesh.index_offset()),
-            sphere_model_count,
+            sphere_model_count + bullets.size(),
             max_models_per_type);
         sphere_mesh.unbind();
 
