@@ -20,6 +20,9 @@ enum class ErrorCode
     FAILED_TO_CREATE_PROGRAM = 14,
     FAILED_TO_LINK_PROGRAM = 15,
     HEAP_ALLOC_FAILED = 16,
+    FAILED_TO_OPEN_WAVE_OUTPUT_DEVICE = 17,
+    FAILED_TO_PREPARE_WAVE_HEADER = 18,
+    FAILED_TO_WRITE_WAVE_OUTPUT = 19,
 };
 
 inline auto die(ErrorCode ec) -> void

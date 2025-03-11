@@ -3,8 +3,8 @@ LD = link.exe
 CXXFLAGS = /nologo /std:c++latest /GS- /Qspectre- /DM_PI=3.14159265358979323846 /D_CRT_SECURE_NO_WARNINGS /D_SCL_SECURE_NO_WARNINGS /DWIN32_LEAN_AND_MEAN /DNOMINMAX /DEBUG:NONE
 LDFLAGS = /nologo /ENTRY:main /SUBSYSTEM:CONSOLE /NODEFAULTLIB /DYNAMICBASE:NO /NXCOMPAT:NO /DEBUG:NONE
 
-SOURCES = main.cpp window.cpp buffer.cpp shader.cpp material.cpp mesh.cpp camera.cpp dyn_array.cpp
-INC_LIBS = kernel32.lib user32.lib gdi32.lib opengl32.lib advapi32.lib
+SOURCES = main.cpp window.cpp buffer.cpp shader.cpp material.cpp mesh.cpp camera.cpp dyn_array.cpp sound_player.cpp
+INC_LIBS = kernel32.lib user32.lib gdi32.lib opengl32.lib advapi32.lib winmm.lib
 OBJECTS = $(SOURCES:.cpp=.obj)
 TARGET = game.exe
 IMAGE = game.png

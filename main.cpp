@@ -17,6 +17,7 @@
 #include "scene.h"
 #include "shader.h"
 #include "shapes.h"
+#include "sound_player.h"
 #include "vector3.h"
 #include "vertex_data.h"
 
@@ -379,6 +380,11 @@ auto main() -> int
     auto time = 0.0f;
 
     auto player = Entity{0u, 0u, 0u, 10u, 0u, 6u};
+
+    auto note = Note{261.63, 1.0}; // C4
+
+    auto sound_player = SoundPlayer{};
+    sound_player.play(note);
 
     while (window.running())
     {
