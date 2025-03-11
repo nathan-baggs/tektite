@@ -23,6 +23,7 @@ enum class ErrorCode
     FAILED_TO_OPEN_WAVE_OUTPUT_DEVICE = 17,
     FAILED_TO_PREPARE_WAVE_HEADER = 18,
     FAILED_TO_WRITE_WAVE_OUTPUT = 19,
+    FAILED_TO_UNPREPARE_WAVE_HEADER = 20,
 };
 
 inline auto die(ErrorCode ec) -> void

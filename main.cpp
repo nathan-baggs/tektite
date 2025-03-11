@@ -313,6 +313,27 @@ const auto *fragment_shader_src = R"(
     }
 )";
 
+auto loop_audio() -> void
+{
+    auto sound_player = SoundPlayer{};
+
+    for (;;)
+    {
+        Note notes[] = {
+            {293.66, 0.1}, // D4
+            {261.63, 0.1}, // C4
+            {349.23, 0.3}, // F4
+            {329.63, 0.1}, // E4
+            {440.00, 0.1}, // A4
+            {392.00, 0.1}, // G4
+            {493.88, 0.2}, // B4
+            {523.25, 0.1}, // C5
+        };
+
+        sound_player.play(notes, sizeof(notes) / sizeof(Note));
+    }
+}
+
 auto main() -> int
 {
     static const auto width = 1920u;
@@ -381,10 +402,7 @@ auto main() -> int
 
     auto player = Entity{0u, 0u, 0u, 10u, 0u, 6u};
 
-    auto note = Note{261.63, 1.0}; // C4
-
-    auto sound_player = SoundPlayer{};
-    sound_player.play(note);
+    ::CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(loop_audio), nullptr, 0, nullptr);
 
     while (window.running())
     {

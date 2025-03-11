@@ -71,6 +71,12 @@ void SoundPlayer::play(Note note)
     {
         ::Sleep(100);
     }
+
+    ensure(
+        ::waveOutUnprepareHeader(wave_out_, &header, sizeof(header)) == MMSYSERR_NOERROR,
+        ErrorCode::FAILED_TO_UNPREPARE_WAVE_HEADER);
+
+    free(header.lpData);
 }
 
 void SoundPlayer::play(Note *notes, std::uint32_t count)
