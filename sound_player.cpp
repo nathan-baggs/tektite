@@ -8,22 +8,24 @@
 #include "clib.h"
 #include "dyn_array.h"
 #include "error.h"
+#include "padding.h"
 
 namespace
 {
 
 static constexpr auto g_sample_rate = 44100u;
 
-DynArray generate_sin_wave(double frequency, double duration)
+DynArray generate_sin_wave(float frequency, float duration)
 {
-    const auto samples = static_cast<std::uint32_t>(g_sample_rate * duration);
+    PADDING_LINE;
+    // const auto samples = static_cast<std::uint32_t>(g_sample_rate * duration);
     auto waves = DynArray{sizeof(std::uint16_t)};
 
-    for (auto i = 0u; i < samples; ++i)
-    {
-        auto wave = static_cast<std::uint16_t>(sin(2 * M_PI * frequency * i / g_sample_rate) * 300);
-        waves.push_back(&wave);
-    }
+    // for (auto i = 0u; i < samples; ++i)
+    // {
+    //     auto wave = static_cast<std::uint16_t>(sin(2 * M_PI * frequency * i / g_sample_rate) * 300);
+    //     waves.push_back(&wave);
+    // }
 
     return waves;
 }
@@ -32,6 +34,7 @@ DynArray generate_sin_wave(double frequency, double duration)
 
 SoundPlayer::SoundPlayer()
 {
+    PADDING_LINE;
     wave_format_ = ::WAVEFORMATEX{
         .wFormatTag = WAVE_FORMAT_PCM,
         .nChannels = 1,
@@ -50,6 +53,7 @@ SoundPlayer::SoundPlayer()
 
 void SoundPlayer::play(Note note)
 {
+    PADDING_LINE;
     const auto waves = generate_sin_wave(note.frequency, note.duration);
 
     auto header = ::WAVEHDR{
@@ -81,6 +85,7 @@ void SoundPlayer::play(Note note)
 
 void SoundPlayer::play(Note *notes, std::uint32_t count)
 {
+    PADDING_LINE;
     for (auto i = 0u; i < count; ++i)
     {
         play(notes[i]);

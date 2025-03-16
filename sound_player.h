@@ -7,8 +7,8 @@
 
 struct Note
 {
-    double frequency;
-    double duration;
+    float frequency;
+    float duration;
 };
 
 class SoundPlayer

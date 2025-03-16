@@ -12,10 +12,8 @@ inline auto log(const char *msg) -> void
 
     ::DWORD written{};
     auto write_res = ::WriteConsoleA(console, msg, strlen(msg), &written, nullptr);
-    ensure(write_res, ErrorCode::WRITE_CONSOLE);
 
     written = {};
     const auto newline = "\n";
     write_res = ::WriteConsoleA(console, newline, 1, &written, nullptr);
-    ensure(write_res, ErrorCode::WRITE_CONSOLE);
 }

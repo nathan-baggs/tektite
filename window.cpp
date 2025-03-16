@@ -10,6 +10,7 @@
 #include "event.h"
 #include "log.h"
 #include "opengl.h"
+#include "padding.h"
 
 PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB{};
 PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB{};
@@ -26,6 +27,7 @@ auto APIENTRY opengl_debug_callback(
     const ::GLchar *message,
     const void *) -> void
 {
+    PADDING_LINE_THREE_QUARTER;
     if (type == GL_DEBUG_TYPE_ERROR)
     {
         log(message);
@@ -34,18 +36,19 @@ auto APIENTRY opengl_debug_callback(
 
 auto CALLBACK window_proc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) -> LRESULT
 {
+    PADDING_LINE_THREE_QUARTER;
     switch (Msg)
     {
         case WM_CLOSE: ::PostQuitMessage(0); break;
         case WM_KEYUP:
         {
-            g_event = {.type = EventType::KEY_UP, .data = static_cast<std::uint8_t>(wParam)};
+            g_event = Event{.type = EventType::KEY_UP, .data = static_cast<std::uint8_t>(wParam)};
             g_has_event = true;
             break;
         }
         case WM_KEYDOWN:
         {
-            g_event = {.type = EventType::KEY_DOWN, .data = static_cast<std::uint8_t>(wParam)};
+            g_event = Event{.type = EventType::KEY_DOWN, .data = static_cast<std::uint8_t>(wParam)};
             g_has_event = true;
             break;
         }
@@ -82,6 +85,7 @@ auto CALLBACK window_proc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) -> 
 
 auto resolve_gl_function(void **function, const char *name) -> void
 {
+    PADDING_LINE_THREE_QUARTER;
     const auto address = ::wglGetProcAddress(name);
     ensure(address != nullptr, ErrorCode::RESOLVE_GL_FUNCTION);
 
@@ -90,6 +94,7 @@ auto resolve_gl_function(void **function, const char *name) -> void
 
 auto resolve_wgl_functions(HINSTANCE instance) -> void
 {
+    PADDING_LINE_THREE_QUARTER;
     auto wc = ::WNDCLASS{
         .style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
         .lpfnWndProc = ::DefWindowProc,
@@ -146,6 +151,7 @@ auto resolve_wgl_functions(HINSTANCE instance) -> void
 
 auto init_opengl(HDC dc) -> void
 {
+    PADDING_LINE_THREE_QUARTER;
     int pixel_format_attribs[]{
         WGL_DRAW_TO_WINDOW_ARB,
         GL_TRUE,
@@ -192,6 +198,7 @@ auto init_opengl(HDC dc) -> void
 
 auto resolve_global_gl_functions() -> void
 {
+    PADDING_LINE_THREE_QUARTER;
 #define RESOLVE(TYPE, NAME) resolve_gl_function(reinterpret_cast<void **>(&NAME), #NAME);
 
     FOR_OPENGL_FUNCTIONS(RESOLVE)
@@ -199,6 +206,7 @@ auto resolve_global_gl_functions() -> void
 
 auto setup_debug() -> void
 {
+    PADDING_LINE_THREE_QUARTER;
     ::glEnable(GL_DEBUG_OUTPUT);
     ::glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     ::glDebugMessageCallback(opengl_debug_callback, nullptr);
@@ -210,6 +218,7 @@ Window::Window(int width, int height)
     , window_{}
     , dc_{}
 {
+    PADDING_LINE_THREE_QUARTER;
     wc_ = ::WNDCLASS{
         .style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
         .lpfnWndProc = window_proc,
@@ -264,11 +273,13 @@ Window::Window(int width, int height)
 
 auto Window::running() const -> bool
 {
+    PADDING_LINE_THREE_QUARTER;
     return running_;
 }
 
 auto Window::pump_message(Event *evt) -> bool
 {
+    PADDING_LINE_THREE_QUARTER;
     auto msg = MSG{};
     while (::PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE))
     {
@@ -293,5 +304,6 @@ auto Window::pump_message(Event *evt) -> bool
 
 auto Window::swap() const -> void
 {
+    PADDING_LINE_THREE_QUARTER;
     ::SwapBuffers(dc_);
 }

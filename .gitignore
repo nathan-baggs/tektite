@@ -21,3 +21,4 @@ compile_commands.json
 *.obj
 *.exe
 dump/
+venv/

@@ -4,6 +4,7 @@
 
 #include "clib.h"
 #include "log.h"
+#include "padding.h"
 
 DynArray::DynArray(std::uint32_t element_size, std::uint32_t capacity)
     : element_size_(element_size)
@@ -11,30 +12,36 @@ DynArray::DynArray(std::uint32_t element_size, std::uint32_t capacity)
     , end_(begin_)
     , capacity_(reinterpret_cast<std::uint8_t *>(begin_) + (element_size_ * capacity))
 {
+    PADDING_LINE_THREE_QUARTER;
 }
 
 auto DynArray::begin() const -> void *
 {
+    PADDING_LINE_THREE_QUARTER;
     return begin_;
 }
 
 auto DynArray::end() const -> void *
 {
+    PADDING_LINE_THREE_QUARTER;
     return end_;
 }
 
 auto DynArray::element_size() const -> std::uint32_t
 {
+    PADDING_LINE_THREE_QUARTER;
     return element_size_;
 }
 
 auto DynArray::size() const -> std::uint32_t
 {
+    PADDING_LINE_THREE_QUARTER;
     return (end_ - begin_) / element_size_;
 }
 
 auto DynArray::push_back(void *data) -> void *
 {
+    PADDING_LINE_THREE_QUARTER;
     if (end_ == capacity_)
     {
         const auto size = (end_ - begin_) / element_size_;
@@ -59,6 +66,7 @@ auto DynArray::push_back(void *data) -> void *
 
 auto DynArray::erase(void *data) -> void *
 {
+    PADDING_LINE_THREE_QUARTER;
     for (auto *cursor = begin_; cursor != end_; cursor += element_size_)
     {
         if (memcmp(cursor, data, element_size_) == 0)

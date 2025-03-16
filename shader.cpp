@@ -6,12 +6,14 @@
 #include "error.h"
 #include "log.h"
 #include "opengl.h"
+#include "padding.h"
 
 namespace
 {
 
 auto to_native(ShaderType type) -> ::GLenum
 {
+    PADDING_LINE_THREE_QUARTER;
     switch (type)
     {
         using enum ShaderType;
@@ -28,6 +30,7 @@ Shader::Shader(const char *source, ShaderType type)
     : handle_{::glCreateShader(to_native(type))}
     , type_(type)
 {
+    PADDING_LINE_THREE_QUARTER;
     const ::GLchar *strings[] = {source};
     const ::GLint lengths[] = {static_cast<::GLint>(strlen(source))};
 
@@ -50,10 +53,12 @@ Shader::Shader(const char *source, ShaderType type)
 
 auto Shader::type() const -> ShaderType
 {
+    PADDING_LINE_THREE_QUARTER;
     return type_;
 }
 
 auto Shader::native_handle() const -> ::GLuint
 {
+    PADDING_LINE_THREE_QUARTER;
     return handle_;
 }

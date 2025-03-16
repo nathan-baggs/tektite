@@ -1,17 +1,21 @@
 #pragma once
 
 #include "clib.h"
+#include "func.h"
+#include "padding.h"
 
 struct Vector3
 {
-    constexpr Vector3()
+    Vector3()
         : Vector3(0.0f)
     {
+        PADDING_LINE;
     }
 
-    constexpr Vector3(float xyz)
+    Vector3(float xyz)
         : Vector3(xyz, xyz, xyz)
     {
+        PADDING_LINE;
     }
 
     constexpr Vector3(float x, float y, float z)
@@ -21,39 +25,26 @@ struct Vector3
     {
     }
 
-    static constexpr auto normalise(const Vector3 &v) -> Vector3
-    {
-        const auto length = hypot(v.x, v.y, v.z);
-        if (length == 0.0f)
-        {
-            return {};
-        }
-        return {v.x / length, v.y / length, v.z / length};
-    }
+    static auto normalise(const Vector3 &v) -> Vector3;
 
-    static constexpr auto cross(const Vector3 &v1, const Vector3 &v2) -> Vector3
-    {
-        const auto i = (v1.y * v2.z) - (v1.z * v2.y);
-        const auto j = (v1.x * v2.z) - (v1.z * v2.x);
-        const auto k = (v1.x * v2.y) - (v1.y * v2.x);
+    static auto cross(const Vector3 &v1, const Vector3 &v2) -> Vector3;
 
-        return {i, -j, k};
-    }
-
-    constexpr static auto distance(const Vector3 &v1, const Vector3 &v2) -> float
+    static auto distance(const Vector3 &v1, const Vector3 &v2) -> float
     {
+        PADDING_LINE;
         return hypot(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
     }
 
-    constexpr auto operator==(const Vector3 &) const -> bool = default;
+    auto operator==(const Vector3 &) const -> bool = default;
 
     float x;
     float y;
     float z;
 };
 
-constexpr auto operator-=(Vector3 &v1, const Vector3 &v2) -> Vector3 &
+inline auto operator-=(Vector3 &v1, const Vector3 &v2) -> Vector3 &
 {
+    PADDING_LINE;
     v1.x -= v2.x;
     v1.y -= v2.y;
     v1.z -= v2.z;
@@ -61,14 +52,16 @@ constexpr auto operator-=(Vector3 &v1, const Vector3 &v2) -> Vector3 &
     return v1;
 }
 
-constexpr auto operator-(const Vector3 &v1, const Vector3 &v2) -> Vector3
+inline auto operator-(const Vector3 &v1, const Vector3 &v2) -> Vector3
 {
+    PADDING_LINE;
     auto tmp = v1;
     return tmp -= v2;
 }
 
-constexpr auto operator+=(Vector3 &v1, const Vector3 &v2) -> Vector3 &
+inline auto operator+=(Vector3 &v1, const Vector3 &v2) -> Vector3 &
 {
+    PADDING_LINE;
     v1.x += v2.x;
     v1.y += v2.y;
     v1.z += v2.z;
@@ -76,14 +69,16 @@ constexpr auto operator+=(Vector3 &v1, const Vector3 &v2) -> Vector3 &
     return v1;
 }
 
-constexpr auto operator+(const Vector3 &v1, const Vector3 &v2) -> Vector3
+inline auto operator+(const Vector3 &v1, const Vector3 &v2) -> Vector3
 {
+    PADDING_LINE;
     auto tmp = v1;
     return tmp += v2;
 }
 
-constexpr auto operator*=(Vector3 &v1, const Vector3 &v2) -> Vector3 &
+inline auto operator*=(Vector3 &v1, const Vector3 &v2) -> Vector3 &
 {
+    PADDING_LINE;
     v1.x *= v2.x;
     v1.y *= v2.y;
     v1.z *= v2.z;
@@ -91,13 +86,15 @@ constexpr auto operator*=(Vector3 &v1, const Vector3 &v2) -> Vector3 &
     return v1;
 }
 
-constexpr auto operator*(const Vector3 &v1, const Vector3 &v2) -> Vector3
+inline auto operator*(const Vector3 &v1, const Vector3 &v2) -> Vector3
 {
+    PADDING_LINE;
     auto tmp = v1;
     return tmp *= v2;
 }
 
-constexpr auto operator-(const Vector3 &v) -> Vector3
+inline auto operator-(const Vector3 &v) -> Vector3
 {
+    PADDING_LINE;
     return {-v.x, -v.y, -v.z};
 }

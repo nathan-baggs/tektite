@@ -3,6 +3,7 @@
 #include "buffer.h"
 #include "error.h"
 #include "opengl.h"
+#include "padding.h"
 #include "vertex_data.h"
 
 Mesh::Mesh(
@@ -15,6 +16,7 @@ Mesh::Mesh(
     , index_count_{index_count}
     , index_offset_{sizeof(VertexData) * vertex_count}
 {
+    PADDING_LINE_THREE_QUARTER;
     vbo_.write(reinterpret_cast<const std::uint8_t *>(vertex_data), sizeof(VertexData) * vertex_count, 0u);
     vbo_.write(
         reinterpret_cast<const std::uint8_t *>(indices),
@@ -43,20 +45,24 @@ Mesh::Mesh(
 
 auto Mesh::bind() const -> void
 {
+    PADDING_LINE_THREE_QUARTER;
     ::glBindVertexArray(vao_);
 }
 
 auto Mesh::unbind() const -> void
 {
+    PADDING_LINE_THREE_QUARTER;
     ::glBindVertexArray(0);
 }
 
 auto Mesh::index_count() const -> std::uint32_t
 {
+    PADDING_LINE_THREE_QUARTER;
     return index_count_;
 }
 
 auto Mesh::index_offset() const -> std::uintptr_t
 {
+    PADDING_LINE_THREE_QUARTER;
     return index_offset_;
 }
