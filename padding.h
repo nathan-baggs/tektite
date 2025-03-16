@@ -259,18 +259,10 @@
 
 #define PADDING_LINE_THREE_QUARTER                                                                                     \
     PADDING_START                                                                                                      \
-    RAW_PADDING_LINE_QUARTER                                                                                           \
-    RAW_PADDING_LINE_QUARTER                                                                                           \
-    RAW_PADDING_LINE_QUARTER                                                                                           \
-    RAW_PADDING_LINE_QUARTER                                                                                           \
     PADDING_END
 
 #define PADDING_LINE                                                                                                   \
     PADDING_START                                                                                                      \
-    RAW_PADDING_LINE_QUARTER                                                                                           \
-    RAW_PADDING_LINE_QUARTER                                                                                           \
-    RAW_PADDING_LINE_QUARTER                                                                                           \
-    RAW_PADDING_LINE_QUARTER                                                                                           \
     PADDING_END
 
 #define RAW_PADDING_LINE_GREY                                                                                          \

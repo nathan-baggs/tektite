@@ -22,8 +22,8 @@ clean:
 
 image:
 	ls -alh $(TARGET)
-	truncate -s 6220800 $(TARGET)
-	cat $(TARGET) | convert -size 1920x1080 -depth 8 rgb:- $(IMAGE)
+	truncate -s 691200 $(TARGET)
+	cat $(TARGET) | convert -size 640x360 -depth 8 rgb:- $(IMAGE)
 	ls -alh $(IMAGE)
 
 
