@@ -138,9 +138,14 @@ class Matrix4
         return elements_.data();
     }
 
-    constexpr auto operator[](this auto &&self, std::size_t index) -> auto &
+    constexpr auto operator[](std::size_t index) const -> const auto &
     {
-        return self.elements_[index];
+        return elements_[index];
+    }
+
+    constexpr auto operator[](std::size_t index) -> auto &
+    {
+        return elements_[index];
     }
 
     friend constexpr auto operator*=(Matrix4 &m1, const Matrix4 &m2) -> Matrix4 &;

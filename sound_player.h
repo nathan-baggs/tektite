@@ -2,7 +2,8 @@
 
 #include <cstdint>
 
-#include <Windows.h>
+#include <windows.h>
+
 #include <mmeapi.h>
 
 struct Note

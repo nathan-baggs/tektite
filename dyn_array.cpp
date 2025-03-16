@@ -41,7 +41,7 @@ auto DynArray::push_back(void *data) -> void *
         const auto total_size = (capacity_ - begin_) / element_size_;
 
         auto new_begin = reinterpret_cast<std::uint8_t *>(malloc(total_size * 2u * element_size_));
-        memcpy(new_begin, begin_, size * element_size_);
+        my_memcpy(new_begin, begin_, size * element_size_);
 
         free(begin_);
         begin_ = new_begin;
@@ -49,7 +49,7 @@ auto DynArray::push_back(void *data) -> void *
         capacity_ = begin_ + (total_size * 2u * element_size_);
     }
 
-    memcpy(end_, data, element_size_);
+    my_memcpy(end_, data, element_size_);
 
     auto *new_element = end_;
     end_ += element_size_;
@@ -63,7 +63,7 @@ auto DynArray::erase(void *data) -> void *
     {
         if (memcmp(cursor, data, element_size_) == 0)
         {
-            memcpy(cursor, cursor + element_size_, end_ - cursor + element_size_);
+            my_memcpy(cursor, cursor + element_size_, end_ - cursor + element_size_);
             end_ -= element_size_;
             break;
         }

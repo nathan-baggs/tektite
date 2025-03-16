@@ -1,6 +1,6 @@
 #include <cstdint>
 
-#include <Windows.h>
+#include <windows.h>
 
 #include "window.h"
 
@@ -20,6 +20,7 @@
 #include "sound_player.h"
 #include "vector3.h"
 #include "vertex_data.h"
+#include "window.h"
 
 // https://stackoverflow.com/a/1583220
 EXTERN_C int _fltused = 0;
@@ -334,7 +335,7 @@ auto loop_audio() -> void
     }
 }
 
-auto main() -> int
+extern "C" __attribute__((section("main3"))) __attribute__((visibility("default"))) auto my_entry() -> int
 {
     static const auto width = 1920u;
     static const auto height = 1080u;
@@ -402,7 +403,7 @@ auto main() -> int
 
     auto player = Entity{0u, 0u, 0u, 10u, 0u, 6u};
 
-    ::CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(loop_audio), nullptr, 0, nullptr);
+    //::CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(loop_audio), nullptr, 0, nullptr);
 
     while (window.running())
     {

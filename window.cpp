@@ -1,8 +1,8 @@
 #include "window.h"
 
-#include <Windows.h>
-#include <gl/gl.h>
+#include <GL/gl.h>
 #include <hidusage.h>
+#include <windows.h>
 
 #include "third_party/opengl/wglext.h"
 
@@ -39,13 +39,13 @@ auto CALLBACK window_proc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) -> 
         case WM_CLOSE: ::PostQuitMessage(0); break;
         case WM_KEYUP:
         {
-            g_event = {.type = EventType::KEY_UP, .data = static_cast<std::uint8_t>(wParam)};
+            g_event = Event{.type = EventType::KEY_UP, .data = static_cast<std::uint8_t>(wParam)};
             g_has_event = true;
             break;
         }
         case WM_KEYDOWN:
         {
-            g_event = {.type = EventType::KEY_DOWN, .data = static_cast<std::uint8_t>(wParam)};
+            g_event = Event{.type = EventType::KEY_DOWN, .data = static_cast<std::uint8_t>(wParam)};
             g_has_event = true;
             break;
         }

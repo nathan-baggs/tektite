@@ -29,23 +29,23 @@ Shader::Shader(const char *source, ShaderType type)
     , type_(type)
 {
     const ::GLchar *strings[] = {source};
-    const ::GLint lengths[] = {static_cast<::GLint>(strlen(source))};
+    const ::GLint lengths[] = {static_cast<::GLint>(my_strlen(source))};
 
     ::glShaderSource(handle_, 1, strings, lengths);
     ::glCompileShader(handle_);
 
-    ::GLint result{};
-    ::glGetShaderiv(handle_, GL_COMPILE_STATUS, &result);
+    //::GLint result{};
+    //::glGetShaderiv(handle_, GL_COMPILE_STATUS, &result);
 
-    if (result != GL_TRUE)
-    {
-        char shader_log[512];
-        ::glGetShaderInfoLog(handle_, sizeof(shader_log), nullptr, shader_log);
+    // if (result != GL_TRUE)
+    //{
+    //     char shader_log[512];
+    //     ::glGetShaderInfoLog(handle_, sizeof(shader_log), nullptr, shader_log);
 
-        log(shader_log);
+    //    log(shader_log);
 
-        ensure(result, ErrorCode::FAILED_TO_COMPILE_SHADER);
-    }
+    //    ensure(result, ErrorCode::FAILED_TO_COMPILE_SHADER);
+    //}
 }
 
 auto Shader::type() const -> ShaderType

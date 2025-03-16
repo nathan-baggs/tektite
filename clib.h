@@ -1,8 +1,10 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 
-#include <Windows.h>
+#include <windows.h>
+
 #include <intrin.h>
 #include <ntsecapi.h>
 
@@ -10,7 +12,7 @@
 
 inline auto log(const char *msg) -> void;
 
-inline auto strlen(const char *str) -> std::size_t
+inline auto my_strlen(const char *str) -> std::size_t
 {
     auto len = std::size_t{};
 
@@ -103,7 +105,7 @@ inline auto free(void *ptr) -> void
     ::HeapFree(::GetProcessHeap(), 0, ptr);
 }
 
-inline auto memcpy(void *dest, const void *src, std::size_t size) -> void *
+inline auto my_memcpy(void *dest, const void *src, std::size_t size) -> void *
 {
     ::__movsb(static_cast<std::uint8_t *>(dest), static_cast<const std::uint8_t *>(src), size);
     return dest;

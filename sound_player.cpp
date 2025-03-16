@@ -2,8 +2,8 @@
 
 #include <cstdint>
 
-#include <Windows.h>
 #include <mmeapi.h>
+#include <windows.h>
 
 #include "clib.h"
 #include "dyn_array.h"

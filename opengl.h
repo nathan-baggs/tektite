@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Windows.h>
-#include <gl/gl.h>
+#include <GL/gl.h>
+#include <windows.h>
 
 #include "third_party/opengl/glext.h"
 

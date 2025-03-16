@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Windows.h>
+#include <windows.h>
 
 #include "clib.h"
 #include "error.h"
@@ -11,7 +11,7 @@ inline auto log(const char *msg) -> void
     ensure(console != INVALID_HANDLE_VALUE, ErrorCode::INVALID_STD_VALUE);
 
     ::DWORD written{};
-    auto write_res = ::WriteConsoleA(console, msg, strlen(msg), &written, nullptr);
+    auto write_res = ::WriteConsoleA(console, msg, my_strlen(msg), &written, nullptr);
     ensure(write_res, ErrorCode::WRITE_CONSOLE);
 
     written = {};
