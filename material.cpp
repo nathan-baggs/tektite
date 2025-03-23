@@ -3,13 +3,11 @@
 #include "error.h"
 #include "log.h"
 #include "opengl.h"
-#include "padding.h"
 #include "shader.h"
 
 Material::Material(const Shader &vertex_shader, const Shader &fragment_shader)
     : handle_{::glCreateProgram()}
 {
-    PADDING_LINE_THREE_QUARTER;
     ensure(handle_ != 0u, ErrorCode::FAILED_TO_CREATE_PROGRAM);
 
     ::glAttachShader(handle_, vertex_shader.native_handle());
@@ -31,13 +29,12 @@ Material::Material(const Shader &vertex_shader, const Shader &fragment_shader)
 
 auto Material::use() const -> void
 {
-    PADDING_LINE_THREE_QUARTER;
     ::glUseProgram(handle_);
 }
 
 auto Material::set_uniform(const char *name, const Matrix4 &obj) const -> void
 {
-    PADDING_LINE_THREE_QUARTER;
+    // not efficient to get the location every time, but it is easy
     if (const auto location = ::glGetUniformLocation(handle_, name); location != -1)
     {
         ::glUniformMatrix4fv(location, 1, GL_FALSE, obj.data());
@@ -46,7 +43,7 @@ auto Material::set_uniform(const char *name, const Matrix4 &obj) const -> void
 
 auto Material::set_uniform(const char *name, int obj) const -> void
 {
-    PADDING_LINE_THREE_QUARTER;
+    // not efficient to get the location every time, but it is easy
     if (const auto location = ::glGetUniformLocation(handle_, name); location != -1)
     {
         ::glUniform1i(location, obj);
@@ -55,7 +52,7 @@ auto Material::set_uniform(const char *name, int obj) const -> void
 
 auto Material::set_uniform(const char *name, float obj) const -> void
 {
-    PADDING_LINE_THREE_QUARTER;
+    // not efficient to get the location every time, but it is easy
     if (const auto location = ::glGetUniformLocation(handle_, name); location != -1)
     {
         ::glUniform1f(location, obj);
@@ -64,6 +61,5 @@ auto Material::set_uniform(const char *name, float obj) const -> void
 
 auto Material::native_handle() const -> ::GLuint
 {
-    PADDING_LINE_THREE_QUARTER;
     return handle_;
 }

@@ -10,14 +10,18 @@
 #include "event.h"
 #include "log.h"
 #include "opengl.h"
-#include "padding.h"
 
+namespace
+{
+
+// pointers to wgl functions
 PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB{};
 PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB{};
 
 Event g_event;
 bool g_has_event = false;
 
+/** Callback for OpenGL debug messages. */
 auto APIENTRY opengl_debug_callback(
     ::GLenum source,
     ::GLenum type,
@@ -27,16 +31,17 @@ auto APIENTRY opengl_debug_callback(
     const ::GLchar *message,
     const void *) -> void
 {
-    PADDING_LINE_THREE_QUARTER;
     if (type == GL_DEBUG_TYPE_ERROR)
     {
         log(message);
     }
 }
 
+/**
+ * Window procedure for the window. Will be called by Windows when events occur.
+ */
 auto CALLBACK window_proc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) -> LRESULT
 {
-    PADDING_LINE_THREE_QUARTER;
     switch (Msg)
     {
         case WM_CLOSE: ::PostQuitMessage(0); break;
@@ -83,18 +88,30 @@ auto CALLBACK window_proc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) -> 
     return ::DefWindowProc(hWnd, Msg, wParam, lParam);
 }
 
+/**
+ * Helper function to resolve an OpenGL function.
+ *
+ * @param function
+ *   Out pointer to write address of function to.
+ * @param name
+ *  Name of function to resolve.
+ */
 auto resolve_gl_function(void **function, const char *name) -> void
 {
-    PADDING_LINE_THREE_QUARTER;
     const auto address = ::wglGetProcAddress(name);
     ensure(address != nullptr, ErrorCode::RESOLVE_GL_FUNCTION);
 
     *function = reinterpret_cast<void *>(address);
 }
 
+/**
+ * Helper function function to resolve the initial wgl functions.
+ *
+ * @param instance
+ *   Instance of a window class.
+ */
 auto resolve_wgl_functions(HINSTANCE instance) -> void
 {
-    PADDING_LINE_THREE_QUARTER;
     auto wc = ::WNDCLASS{
         .style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
         .lpfnWndProc = ::DefWindowProc,
@@ -103,6 +120,7 @@ auto resolve_wgl_functions(HINSTANCE instance) -> void
 
     ::RegisterClassA(&wc);
 
+    // create a fake window so we can resolve functions
     auto dummy_window = ::CreateWindowExA(
         0,
         wc.lpszClassName,
@@ -139,19 +157,26 @@ auto resolve_wgl_functions(HINSTANCE instance) -> void
     auto make_current_res = ::wglMakeCurrent(dc, context);
     ensure(make_current_res == TRUE, ErrorCode::WGL_MAKE_CURRENT);
 
+    // resolve out wgl functions
     resolve_gl_function(reinterpret_cast<void **>(&wglCreateContextAttribsARB), "wglCreateContextAttribsARB");
     resolve_gl_function(reinterpret_cast<void **>(&wglChoosePixelFormatARB), "wglChoosePixelFormatARB");
 
     make_current_res = ::wglMakeCurrent(dc, 0);
     ensure(make_current_res == TRUE, ErrorCode::WGL_MAKE_CURRENT);
 
+    // clean-up (should be RAII)
     ::ReleaseDC(dummy_window, dc);
     ::DestroyWindow(dummy_window);
 }
 
+/**
+ * Helper function to initialise an OpenGL window.
+ *
+ * @param dc
+ *   Device context to initialise for OpenGL.
+ */
 auto init_opengl(HDC dc) -> void
 {
-    PADDING_LINE_THREE_QUARTER;
     int pixel_format_attribs[]{
         WGL_DRAW_TO_WINDOW_ARB,
         GL_TRUE,
@@ -196,20 +221,26 @@ auto init_opengl(HDC dc) -> void
     ensure(make_current_res == TRUE, ErrorCode::WGL_MAKE_CURRENT);
 }
 
+/**
+ * Helper function to resolve all global OpenGL functions.
+ */
 auto resolve_global_gl_functions() -> void
 {
-    PADDING_LINE_THREE_QUARTER;
+    // x macro expansion
 #define RESOLVE(TYPE, NAME) resolve_gl_function(reinterpret_cast<void **>(&NAME), #NAME);
 
     FOR_OPENGL_FUNCTIONS(RESOLVE)
 }
 
+/**
+ * Helper function to setup OpenGL debugging (could probably remove to save space).
+ */
 auto setup_debug() -> void
 {
-    PADDING_LINE_THREE_QUARTER;
     ::glEnable(GL_DEBUG_OUTPUT);
     ::glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     ::glDebugMessageCallback(opengl_debug_callback, nullptr);
+}
 }
 
 Window::Window(int width, int height)
@@ -218,7 +249,6 @@ Window::Window(int width, int height)
     , window_{}
     , dc_{}
 {
-    PADDING_LINE_THREE_QUARTER;
     wc_ = ::WNDCLASS{
         .style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
         .lpfnWndProc = window_proc,
@@ -273,13 +303,11 @@ Window::Window(int width, int height)
 
 auto Window::running() const -> bool
 {
-    PADDING_LINE_THREE_QUARTER;
     return running_;
 }
 
 auto Window::pump_message(Event *evt) -> bool
 {
-    PADDING_LINE_THREE_QUARTER;
     auto msg = MSG{};
     while (::PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE))
     {
@@ -304,6 +332,5 @@ auto Window::pump_message(Event *evt) -> bool
 
 auto Window::swap() const -> void
 {
-    PADDING_LINE_THREE_QUARTER;
     ::SwapBuffers(dc_);
 }

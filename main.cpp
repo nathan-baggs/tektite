@@ -2,8 +2,6 @@
 
 #include <Windows.h>
 
-#include "window.h"
-
 #include "buffer.h"
 #include "camera.h"
 #include "dyn_array.h"
@@ -22,9 +20,12 @@
 #include "sound_player.h"
 #include "vector3.h"
 #include "vertex_data.h"
+#include "window.h"
 
 // https://stackoverflow.com/a/1583220
 EXTERN_C int _fltused = 0;
+
+// packed structs to mirror OpenGL alignment
 
 #pragma warning(push)
 #pragma warning(disable : 4324)
@@ -36,6 +37,7 @@ struct PointLightBuffer
 };
 #pragma warning(pop)
 
+// an entity is just a collection of offsets into the main object buffer for each shape
 struct Entity
 {
     std::uint32_t sphere_start;
@@ -51,6 +53,8 @@ struct Bullet
     Vector3 position;
     Vector3 velocity;
 };
+
+// uber shader code
 
 const auto *vertex_shader_src = R"(
     #version 460 core
@@ -315,9 +319,16 @@ const auto *fragment_shader_src = R"(
     }
 )";
 
+/**
+ * Run the audio loop. It is expected that this will be called in a separate thread.
+ *
+ * Note that this is put in a separate section to try and make it the "first" function in the binary, we then use *a
+ * lot* of padding to shift all the code down so it generates a more interesting image.
+ */
 SECTION("main");
 auto loop_audio() -> void
 {
+    // comment this out on x64
     PADDING_START
     RAW_PADDING_LINE_QUARTER
     RAW_PADDING_LINE_QUARTER
@@ -549,328 +560,13 @@ auto loop_audio() -> void
     RAW_PADDING_LINE_QUARTER
     RAW_PADDING_LINE_QUARTER
     RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
-    // RAW_PADDING_LINE_QUARTER
     PADDING_END
 
     auto sound_player = SoundPlayer{};
 
     for (;;)
     {
+        // not annoying at all
         Note notes[] = {
             {293.66, 0.1}, // D4
             {261.63, 0.1}, // C4
@@ -888,7 +584,6 @@ auto loop_audio() -> void
 
 SECTION("main") auto main() -> int
 {
-    PADDING_LINE_QUARTER;
     static const auto width = 1920u;
     static const auto height = 1080u;
 
@@ -900,6 +595,8 @@ SECTION("main") auto main() -> int
     auto fragment_shader = Shader{fragment_shader_src, ShaderType::FRAGMENT};
 
     auto material = Material{vertex_shader, fragment_shader};
+
+    // create a single instance of the three unit primitives
 
     const auto cube_mesh = Mesh{
         g_cube_vertices,
@@ -923,10 +620,13 @@ SECTION("main") auto main() -> int
 
     auto cylinder_mesh = Mesh{cylinder_vertices, cylinder_vertex_count, cylinder_indices, cylinder_index_count};
 
+    // simple camera setup
     auto camera =
         Camera{{-2.0f, 1.0f, 5.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, M_PI / 4.0f, width, height, 0.1f, 1000.0f};
     const auto camera_buffer = Buffer{sizeof(Matrix4) * 2 + sizeof(Vector3)};
 
+    // use one large buffer for all the mesh instances, split into thirds (on for each shape)
+    // don't overflow this!
     auto model_data_buffer = Buffer{sizeof(ModelData) * max_models_per_type * 3u};
     model_data_buffer.write(
         reinterpret_cast<const std::uint8_t *>(cube_models), sizeof(ModelData) * cube_model_count, 0);
@@ -955,6 +655,7 @@ SECTION("main") auto main() -> int
 
     auto player = Entity{0u, 0u, 0u, 10u, 0u, 6u};
 
+    // run audio in separate thread
     ::CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(loop_audio), nullptr, 0, nullptr);
 
     while (window.running())
@@ -967,6 +668,7 @@ SECTION("main") auto main() -> int
 
         while (has_event)
         {
+            // handle user input
             switch (evt.type)
             {
                 using enum EventType;
@@ -1027,12 +729,15 @@ SECTION("main") auto main() -> int
             walk_direction += camera.right();
         }
 
+        // map the model buffer into memory, this allows us to easily update it
         auto *mapped_model_data =
             reinterpret_cast<ModelData *>(::glMapNamedBuffer(model_data_buffer.native_handle(), GL_WRITE_ONLY));
 
+        // the one enemy model is always the first sphere model
         auto *enemy = &mapped_model_data[max_models_per_type];
         const auto enemy_position = Vector3{enemy->model[12], enemy->model[13], enemy->model[14]};
 
+        // update the position of all the gun shapes
         const auto speed = 0.4f;
         if (walk_direction != Vector3{})
         {
@@ -1040,8 +745,10 @@ SECTION("main") auto main() -> int
             camera.translate(translation);
 
             const auto translation_matrix = Matrix4{translation};
+
             // no spheres
 
+            // rely on knowing the fixed offsets of the cube and cylinder models
             for (auto i = player.cube_start; i < player.cube_end; ++i)
             {
                 mapped_model_data[i].model = translation_matrix * mapped_model_data[i].model;
@@ -1053,6 +760,7 @@ SECTION("main") auto main() -> int
             }
         }
 
+        // rotate the gun shapes around the player with the camera
         if (delta_x != 0.0f || delta_y != 0.0f)
         {
             camera.adjust_yaw(delta_x);
@@ -1076,6 +784,7 @@ SECTION("main") auto main() -> int
 
         material.use();
 
+        // not great but good enough
         time += 1.0f / 30.0f;
         material.set_uniform("time", time);
 
@@ -1083,6 +792,7 @@ SECTION("main") auto main() -> int
 
         player_light.position = camera_pos;
 
+        // update camera data
         camera_buffer.write(reinterpret_cast<const std::uint8_t *>(camera.view()), sizeof(Matrix4), 0);
         camera_buffer.write(
             reinterpret_cast<const std::uint8_t *>(camera.projection()), sizeof(Matrix4), sizeof(Matrix4));
@@ -1091,6 +801,7 @@ SECTION("main") auto main() -> int
 
         auto *cursor = reinterpret_cast<std::uint8_t *>(bullets.begin());
 
+        // remove bullets that are too far away
         while (cursor != bullets.end())
         {
             const auto *bullet = reinterpret_cast<Bullet *>(cursor);
@@ -1103,14 +814,19 @@ SECTION("main") auto main() -> int
             cursor += bullets.element_size();
         }
 
+        // update the light buffer
         const auto light_count = bullets.size() + 1;
         light_buffer.write(reinterpret_cast<const std::uint8_t *>(&light_count), sizeof(int), 0);
         light_buffer.write(reinterpret_cast<const std::uint8_t *>(&player_light), sizeof(PointLightBuffer), 16);
+
+        // update the bullet positions
         for (auto i = 0u; i < bullets.size(); ++i)
         {
             auto *bullet =
                 reinterpret_cast<Bullet *>(reinterpret_cast<std::uint8_t *>(bullets.begin()) + (i * sizeof(Bullet)));
             bullet->position += bullet->velocity;
+
+            // update the light attached to the bullet
             auto bullet_light = PointLightBuffer{{bullet->position}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.01f, 0.032f}};
             light_buffer.write(
                 reinterpret_cast<const std::uint8_t *>(&bullet_light),
@@ -1122,8 +838,10 @@ SECTION("main") auto main() -> int
             model_data->checker_colour1 = {1.0f, 0.0f, 0.0f};
             model_data->checker_colour2 = {1.0f, 0.0f, 0.0f};
 
+            // if the bullet hits the enemy, move the enemy
             if (Vector3::distance(bullet->position, enemy_position) < 3.0f)
             {
+                // generate a random position
                 const auto random_float = [](float min, float max) -> float
                 { return min + static_cast<float>(rand()) / (static_cast<float>(0xFFFFFFFF / (max - min))); };
 
@@ -1133,11 +851,15 @@ SECTION("main") auto main() -> int
                 log("hit");
             }
         }
-        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, light_buffer.native_handle());
 
+        // bind the SSBOs
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, light_buffer.native_handle());
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, model_data_buffer.native_handle());
 
+        // unmap the model buffer, should be RAII
         ::glUnmapNamedBuffer(model_data_buffer.native_handle());
+
+        // instance rendering, draw each of the shape types
 
         cube_mesh.bind();
         ::glDrawElementsInstancedBaseInstance(

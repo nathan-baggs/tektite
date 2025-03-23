@@ -2,6 +2,9 @@
 
 #include <Windows.h>
 
+/**
+ * Enumeration of error codes.
+ */
 enum class ErrorCode
 {
     INVALID_STD_VALUE = 1,
@@ -26,11 +29,26 @@ enum class ErrorCode
     FAILED_TO_UNPREPARE_WAVE_HEADER = 20,
 };
 
+/**
+ * Exit the process with the given error code.
+ *
+ * @param ec
+ *   The error code to exit with.
+ */
 inline auto die(ErrorCode ec) -> void
 {
     ::ExitProcess(static_cast<::UINT>(ec));
 }
 
+/**
+ * Ensure the condition is true, otherwise exit with the given error code.
+ *
+ * @param condition
+ *   The condition to check.
+ *
+ * @param ec
+ *   The error code to exit with.
+ */
 inline auto ensure(bool condition, ErrorCode ec) -> void
 {
     if (!condition)

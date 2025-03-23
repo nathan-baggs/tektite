@@ -8,16 +8,25 @@
 #include "clib.h"
 #include "dyn_array.h"
 #include "error.h"
-#include "padding.h"
 
 namespace
 {
 
 static constexpr auto g_sample_rate = 44100u;
 
+/**
+ * Helper function to generate a sine wave.
+ *
+ * @param frequency
+ *   The frequency of the wave.
+ *
+ * @param duration
+ *  The duration of the wave.
+ */
 DynArray generate_sin_wave(float frequency, float duration)
 {
-    PADDING_LINE;
+    // commented out as doesn't compile on 32-bit
+
     // const auto samples = static_cast<std::uint32_t>(g_sample_rate * duration);
     auto waves = DynArray{sizeof(std::uint16_t)};
 
@@ -34,7 +43,6 @@ DynArray generate_sin_wave(float frequency, float duration)
 
 SoundPlayer::SoundPlayer()
 {
-    PADDING_LINE;
     wave_format_ = ::WAVEFORMATEX{
         .wFormatTag = WAVE_FORMAT_PCM,
         .nChannels = 1,
@@ -53,7 +61,6 @@ SoundPlayer::SoundPlayer()
 
 void SoundPlayer::play(Note note)
 {
-    PADDING_LINE;
     const auto waves = generate_sin_wave(note.frequency, note.duration);
 
     auto header = ::WAVEHDR{
@@ -71,6 +78,7 @@ void SoundPlayer::play(Note note)
     ensure(
         ::waveOutWrite(wave_out_, &header, sizeof(header)) == MMSYSERR_NOERROR, ErrorCode::FAILED_TO_WRITE_WAVE_OUTPUT);
 
+    // block and wait for the sound to finish playing
     while (!(header.dwFlags & WHDR_DONE))
     {
         ::Sleep(100);
@@ -85,7 +93,6 @@ void SoundPlayer::play(Note note)
 
 void SoundPlayer::play(Note *notes, std::uint32_t count)
 {
-    PADDING_LINE;
     for (auto i = 0u; i < count; ++i)
     {
         play(notes[i]);

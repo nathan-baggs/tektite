@@ -11,6 +11,8 @@
 
 inline auto log(const char *msg) -> void;
 
+// some libc functions that will be mssing when we compile with /NODEFAULTLIB
+
 inline auto strlen(const char *str) -> std::size_t
 {
     auto len = std::size_t{};

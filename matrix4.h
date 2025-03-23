@@ -6,13 +6,23 @@
 #include "quaternion.h"
 #include "vector3.h"
 
+/**
+ * Class representing a basic 4x4 matrix. The components are stored in column-major order so that they can be passed
+ * directly to OpenGL.
+ */
 class Matrix4
 {
   public:
+    /**
+     * Tag dispatch to disambiguate the constructor that takes a translation and a scale.
+     */
     struct Scale
     {
     };
 
+    /**
+     * Default constructor, initialises the matrix to the identity matrix.
+     */
     constexpr Matrix4()
         : elements_({
               1.0f,
@@ -35,11 +45,25 @@ class Matrix4
     {
     }
 
+    /**
+     * Constructor that initialises the matrix with the specified elements.
+     *
+     * @param elements
+     *   The elements to initialise the matrix with.
+     */
     constexpr Matrix4(const std::array<float, 16u> &elements)
         : elements_(elements)
     {
     }
 
+    /**
+     * Constructor that initialises the matrix with the specified elements.
+     *
+     * Note that this is for keeping code simple.
+     *
+     * @param elements
+     *   The elements to initialise the matrix with. Sure hope there's 16 of them!
+     */
     Matrix4(const float *elements)
     {
         for (auto i = 0u; i < 16u; ++i)
@@ -48,6 +72,12 @@ class Matrix4
         }
     }
 
+    /**
+     * Construct a translation matrix.
+     *
+     * @param translation
+     *   The translation to apply.
+     */
     constexpr Matrix4(const Vector3 &translation)
         : elements_({
               1.0f,
@@ -70,6 +100,12 @@ class Matrix4
     {
     }
 
+    /**
+     * Construct a scale matrix.
+     *
+     * @param scale
+     *   The scale to apply.
+     */
     constexpr Matrix4(const Vector3 &scale, Scale)
         : elements_({
               scale.x,
@@ -92,6 +128,14 @@ class Matrix4
     {
     }
 
+    /**
+     * Construct a translation and scale matrix.
+     *
+     * @param translation
+     *   The translation to apply.
+     * @param scale
+     *   The scale to apply.
+     */
     constexpr Matrix4(const Vector3 &translation, const Vector3 &scale)
         : elements_({
               scale.x,
@@ -114,6 +158,12 @@ class Matrix4
     {
     }
 
+    /**
+     * Construct a rotation matrix.
+     *
+     * @param rotation
+     *   The rotation to apply.
+     */
     constexpr Matrix4(const Quaternion &rotation)
         : Matrix4{}
     {
@@ -130,24 +180,87 @@ class Matrix4
         elements_[10] = 1.0f - 2.0f * rotation.x * rotation.x - 2.0f * rotation.y * rotation.y;
     }
 
+    /**
+     * Create a look at (view) matrix.
+     *
+     * @param eye
+     *   The position of the camera.
+     * @param look_at
+     *   The point to look at.
+     * @param up
+     *   The up vector.
+     *
+     * @return
+     * The look at matrix.
+     */
     static auto look_at(const Vector3 &eye, const Vector3 &look_at, const Vector3 &up) -> Matrix4;
+
+    /**
+     * Create a perspective (projection) matrix.
+     *
+     * @param fov
+     *   The field of view in radians.
+     * @param width
+     *   The width of the viewport.
+     * @param height
+     *   The height of the viewport.
+     * @param near_plane
+     *   The near plane.
+     * @param far_plane
+     *   The far plane.
+     *
+     * @return
+     * The perspective matrix.
+     */
     static auto perspective(float fov, float width, float height, float near_plane, float far_plane) -> Matrix4;
 
+    /**
+     * Get the data of the matrix.
+     *
+     * Note that ideally we'd return a span or const ref to a std::array.
+     *
+     * @return
+     * The data of the matrix.
+     */
     constexpr auto data() const -> const float *
     {
         return elements_.data();
     }
 
+    /**
+     * Get an element of the matrix.
+     *
+     * @param self
+     *   Deducing this pointer.
+     * @param index
+     *   The index of the element to get.
+     *
+     * @return
+     *   The element at the specified index.
+     */
     constexpr auto operator[](this auto &&self, std::size_t index) -> auto &
     {
         return self.elements_[index];
     }
 
+    /**
+     * Multiplication assignment operator.
+     *
+     * @param m1
+     *   The matrix to multiply with.
+     * @param m2
+     *   The matrix to multiply.
+     *
+     * @return
+     *   Reference to m1 after the multiplication.
+     */
     friend constexpr auto operator*=(Matrix4 &m1, const Matrix4 &m2) -> Matrix4 &;
 
+    /** Default equality operator. */
     constexpr auto operator==(const Matrix4 &) const -> bool = default;
 
   private:
+    /** The elements of the matrix. */
     std::array<float, 16u> elements_;
 };
 
