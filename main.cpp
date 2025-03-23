@@ -924,7 +924,7 @@ SECTION("main") auto main() -> int
     auto cylinder_mesh = Mesh{cylinder_vertices, cylinder_vertex_count, cylinder_indices, cylinder_index_count};
 
     auto camera =
-        Camera{{-2.0f, 1.0f, 5.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, M_PI / 4.0f, width, height, 0.1f, 100.0f};
+        Camera{{-2.0f, 1.0f, 5.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, M_PI / 4.0f, width, height, 0.1f, 1000.0f};
     const auto camera_buffer = Buffer{sizeof(Matrix4) * 2 + sizeof(Vector3)};
 
     auto model_data_buffer = Buffer{sizeof(ModelData) * max_models_per_type * 3u};
